@@ -1,0 +1,131 @@
+@import 'tailwindcss';
+
+/*
+ * SmartHorse design tokens.
+ * Visual language: stable / pasture. Stone-neutral surfaces, deep pasture green
+ * for action and identity, bay-brown used sparingly as the single accent.
+ * Keep this file as the only place raw colour values are defined.
+ */
+@theme {
+  /* Neutrals — cool stone, deliberately not cream */
+  --color-stone-50: #f7f7f5;
+  --color-stone-100: #eeeeeb;
+  --color-stone-200: #e1e1dc;
+  --color-stone-300: #c9c9c1;
+  --color-stone-500: #7c7c74;
+  --color-stone-600: #5d5d56;
+  --color-stone-700: #40403b;
+
+  /* Ink — near-black with a green cast */
+  --color-ink: #1c2321;
+  --color-ink-soft: #2b3532;
+
+  /* Pasture — primary action colour */
+  --color-pasture-50: #eef4f1;
+  --color-pasture-100: #d7e5df;
+  --color-pasture-500: #2f5d50;
+  --color-pasture-600: #274d43;
+  --color-pasture-700: #1e3c34;
+
+  /* Bay — the single accent, used for active markers and the brand mark */
+  --color-bay-400: #b58150;
+  --color-bay-500: #8a5a2b;
+
+  /*
+   * Forest / sand / brass — Phase J's richer dashboard palette. Additive,
+   * not a replacement for pasture/bay: every other already-built module
+   * keeps its existing look, and these are used only where the Dashboard
+   * redesign specifically calls for a deeper, warmer register (the hero,
+   * Smart Actions, emphasis accents) rather than recoloring the whole app.
+   */
+  --color-forest-900: #0f2a22;
+  --color-forest-700: #163c30;
+  --color-forest-600: #1b4a3b;
+  --color-forest-500: #23604d;
+  --color-forest-50: #eaf1ee;
+  --color-sand-50: #faf6ee;
+  --color-sand-100: #f3ead8;
+  --color-sand-200: #e9dbbd;
+  --color-brass-400: #c9a227;
+  --color-brass-500: #a9841c;
+  --color-brass-600: #8a6b16;
+
+  /* Status */
+  --color-danger-50: #fdf1f1;
+  --color-danger-500: #a32e2e;
+  --color-danger-700: #7d2323;
+  --color-success-50: #eef5f0;
+  --color-success-600: #2f6b44;
+  --color-warning-50: #fbf4e8;
+  --color-warning-600: #8a6212;
+
+  /* Type — system stacks, no webfont fetch at build time */
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif;
+
+  --radius-card: 0.5rem;
+}
+
+/*
+ * Dashboard entrance motion (Phase J). A short, single fade-and-rise used for
+ * card/panel entrances — kept to one shared keyframe so motion stays
+ * consistent rather than each component inventing its own. Components apply
+ * it only within `motion-safe:`, so `prefers-reduced-motion: reduce` shows
+ * everything in place with no animation at all (see `fadeInUp` in
+ * `features/dashboard/components/layout.ts`).
+ */
+@keyframes sh-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-stone-50);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.015em;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  /* Visible, consistent keyboard focus everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--color-pasture-500);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility sh-field {
+  @apply text-ink w-full rounded-md border border-stone-300 bg-white px-3 py-2 placeholder:text-stone-500 disabled:cursor-not-allowed disabled:bg-stone-100;
+}
