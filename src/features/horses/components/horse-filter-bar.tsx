@@ -5,7 +5,7 @@ import { ListFilter, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { cn } from '@/lib/cn';
-import { useGenderOptions, useStatusOptions, useTranslations } from '@/i18n';
+import { useGenderOptions, useI18n, useStatusOptions } from '@/i18n';
 import { hasActiveFilters } from '../format';
 import type { HorseFilters, HorseGender, HorseStatus } from '../types';
 
@@ -38,7 +38,7 @@ export function HorseFilterBar({ filters, onChange, onReset, breeds }: HorseFilt
   const panelId = useId();
   const count = activeCount(filters);
   const showReset = hasActiveFilters(filters);
-  const t = useTranslations();
+  const { t, tc } = useI18n();
   const genderOptions = useGenderOptions();
   const statusOptions = useStatusOptions();
 
@@ -95,7 +95,7 @@ export function HorseFilterBar({ filters, onChange, onReset, breeds }: HorseFilt
           <option value={ANY}>{t.horses.allBreeds}</option>
           {breeds.map((breed) => (
             <option key={breed} value={breed}>
-              {breed}
+              {tc(breed)}
             </option>
           ))}
         </Select>

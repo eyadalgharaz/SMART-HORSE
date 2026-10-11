@@ -2,7 +2,7 @@
 
 import { Pencil } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
-import { useGenderLabel, useHorseName, useTranslations } from '@/i18n';
+import { useGenderLabel, useHorseName, useI18n } from '@/i18n';
 import { formatAge } from '../format';
 import type { Horse } from '../types';
 import { HorsePhoto } from './horse-photo';
@@ -14,7 +14,7 @@ import { HorseStatusBadge } from './horse-status-badge';
  * name is the focus and the details start immediately below it.
  */
 export function HorseProfileHeader({ horse }: { horse: Horse }) {
-  const t = useTranslations();
+  const { t, tc, locale } = useI18n();
   const displayName = useHorseName(horse.name);
   const genderLabel = useGenderLabel(horse.gender);
 
@@ -28,9 +28,9 @@ export function HorseProfileHeader({ horse }: { horse: Horse }) {
             <h2 className="text-xl font-semibold break-words sm:text-2xl">{displayName}</h2>
             <HorseStatusBadge status={horse.status} />
           </div>
-          <p className="mt-1 text-stone-600">{horse.breed}</p>
+          <p className="mt-1 text-stone-600">{tc(horse.breed)}</p>
           <p className="text-stone-600">
-            {genderLabel} · {formatAge(horse.birthDate)}
+            {genderLabel} · {formatAge(horse.birthDate, undefined, locale)}
           </p>
         </div>
 

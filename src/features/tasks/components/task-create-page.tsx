@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/layout/page-header';
+import { useTranslations } from '@/i18n';
 import { emptyHorseFilters } from '@/features/horses/types';
 import { useHorses } from '@/features/horses/use-horses';
 import { useAssignees } from '../hooks/use-assignees';
@@ -20,11 +21,12 @@ export function TaskCreatePage() {
   const { horses, isPending: horsesPending } = useHorses(emptyHorseFilters);
   const { assignees, isPending: assigneesPending } = useAssignees();
   const { mutateAsync } = useCreateTask();
+  const t = useTranslations();
 
   if (horsesPending || assigneesPending) {
     return (
       <>
-        <PageHeader title="Add task" />
+        <PageHeader title={t.tasks.create.title} />
         <TaskFormSkeleton />
       </>
     );
@@ -32,15 +34,12 @@ export function TaskCreatePage() {
 
   return (
     <>
-      <PageHeader
-        title="Add task"
-        description="Create a new piece of stable or farm work to track."
-      />
+      <PageHeader title={t.tasks.create.title} description={t.tasks.create.description} />
       <TaskForm
         horses={horses}
         assignees={assignees}
-        submitLabel="Save task"
-        submittingLabel="Saving task"
+        submitLabel={t.tasks.create.submit}
+        submittingLabel={t.tasks.create.submitting}
         onCancelHref="/tasks"
         onSubmit={async (input) => {
           const created = await mutateAsync(input);

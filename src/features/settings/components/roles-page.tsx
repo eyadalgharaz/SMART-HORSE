@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { ErrorState } from '@/components/ui/error-state';
+import { useTranslations } from '@/i18n';
 import { useRoles } from '../hooks/use-roles';
 import { RoleCard } from './role-card';
 import { SettingsSectionLayout } from './settings-section-layout';
@@ -15,20 +16,19 @@ import { RolesSkeleton } from './settings-skeletons';
  */
 export function RolesPage() {
   const { roles, memberCounts, isPending, isError, isRefetching, refetch } = useRoles();
+  const t = useTranslations();
+  const r = t.settings.roles;
 
   return (
-    <SettingsSectionLayout
-      title="Roles & Permissions"
-      description="Review roles and the access associated with them."
-    >
+    <SettingsSectionLayout title={t.settings.sections.roles.title} description={r.pageDescription}>
       <div className="space-y-4">
         {isError ? (
           <ErrorState
-            title="We couldn't load roles"
-            description="Something went wrong while loading roles. Check your connection and try again."
+            title={r.loadErrorTitle}
+            description={r.loadErrorDescription}
             action={
               <Button variant="secondary" onClick={() => refetch()} loading={isRefetching}>
-                Try again
+                {t.common.tryAgain}
               </Button>
             }
           />
@@ -36,10 +36,7 @@ export function RolesPage() {
           <RolesSkeleton />
         ) : (
           <>
-            <p className="text-sm text-stone-600">
-              Permissions are shown here for reference. Access is enforced by the backend, not by
-              hiding these controls.
-            </p>
+            <p className="text-sm text-stone-600">{r.note}</p>
             <ul className="grid gap-4 sm:grid-cols-2">
               {roles.map((role) => (
                 <li key={role.id}>

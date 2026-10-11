@@ -4,9 +4,10 @@ import { useId, useState } from 'react';
 import { Paperclip, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
+import { useI18n } from '@/i18n';
 import { attachmentTypeFor, formatFileSize, formatRecordDate } from '../format';
 import type { AttachmentType, MedicalAttachment } from '../types';
-import { attachmentTypeOptions, MAX_ATTACHMENT_BYTES } from '../vocabulary';
+import { attachmentTypeValues, MAX_ATTACHMENT_BYTES } from '../vocabulary';
 
 /**
  * Lets someone attach X-rays, lab results and documents to a record — as
@@ -29,7 +30,10 @@ export function MedicalAttachmentField({
   onChange: (attachments: MedicalAttachment[]) => void;
 }) {
   const inputId = useId();
-  const [rejected, setRejected] = useState<string | null>(null);
+  const { t, locale } = useI18n();
+  // The rejected files are kept, not the sentence, so the message follows a
+  // language switch.
+  const [rejected, setRejected] = useState<string[]>([]);
 
   function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -51,11 +55,7 @@ export function MedicalAttachmentField({
       });
     }
 
-    setRejected(
-      tooLarge.length > 0
-        ? `${tooLarge.join(', ')} ${tooLarge.length === 1 ? 'is' : 'are'} larger than ${formatFileSize(MAX_ATTACHMENT_BYTES)} and ${tooLarge.length === 1 ? 'was' : 'were'} not attached.`
-        : null,
-    );
+    setRejected(tooLarge);
     if (added.length > 0) onChange([...attachments, ...added]);
   }
 
@@ -79,7 +79,7 @@ export function MedicalAttachmentField({
           className="text-ink inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-stone-300 bg-white px-4 text-sm font-medium hover:bg-stone-100"
         >
           <Paperclip className="size-4" aria-hidden="true" />
-          Attach files
+          {t.medical.attachments.attachFiles}
         </label>
         <input
           id={inputId}
@@ -93,19 +93,22 @@ export function MedicalAttachmentField({
           }}
         />
         <p className="mt-2 text-xs text-stone-600">
-          X-rays, lab results, photos or documents, up to {formatFileSize(MAX_ATTACHMENT_BYTES)}{' '}
-          each. Listed on this device only for now — nothing is uploaded.
+          {t.medical.attachments.help(formatFileSize(MAX_ATTACHMENT_BYTES, locale))}
         </p>
       </div>
 
-      {rejected ? (
+      {rejected.length > 0 ? (
         <p role="alert" className="text-danger-700 text-sm">
-          {rejected}
+          {t.medical.attachments.tooLarge(
+            rejected.join(locale === 'ar' ? '، ' : ', '),
+            rejected.length,
+            formatFileSize(MAX_ATTACHMENT_BYTES, locale),
+          )}
         </p>
       ) : null}
 
       {attachments.length === 0 ? (
-        <p className="text-sm text-stone-600">No files attached yet.</p>
+        <p className="text-sm text-stone-600">{t.medical.attachments.noneYet}</p>
       ) : (
         <ul className="space-y-2">
           {attachments.map((attachment) => (
@@ -116,15 +119,19 @@ export function MedicalAttachmentField({
               {/* Full width on a phone, so the file name keeps a readable line
                   and the controls drop underneath instead of crushing it. */}
               <div className="w-full min-w-0 sm:w-auto sm:flex-1">
-                <p className="truncate text-sm font-medium">{attachment.fileName}</p>
+                <p className="truncate text-sm font-medium" dir="auto">
+                  {attachment.fileName}
+                </p>
                 <p className="text-sm text-stone-600">
-                  {formatFileSize(attachment.sizeBytes)} ·{' '}
-                  <time dateTime={attachment.addedAt}>{formatRecordDate(attachment.addedAt)}</time>
+                  {formatFileSize(attachment.sizeBytes, locale)} ·{' '}
+                  <time dateTime={attachment.addedAt}>
+                    {formatRecordDate(attachment.addedAt, locale)}
+                  </time>
                 </p>
               </div>
 
               <label className="sr-only" htmlFor={`${attachment.id}-type`}>
-                File type for {attachment.fileName}
+                {t.medical.attachments.fileTypeFor(attachment.fileName)}
               </label>
               <Select
                 id={`${attachment.id}-type`}
@@ -134,16 +141,16 @@ export function MedicalAttachmentField({
                   updateType(attachment.id, event.target.value as AttachmentType)
                 }
               >
-                {attachmentTypeOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                {attachmentTypeValues.map((value) => (
+                  <option key={value} value={value}>
+                    {t.medical.attachmentTypes[value]}
                   </option>
                 ))}
               </Select>
 
               <Button variant="ghost" size="sm" onClick={() => remove(attachment.id)}>
                 <Trash2 className="size-4" aria-hidden="true" />
-                <span className="sr-only">Remove {attachment.fileName}</span>
+                <span className="sr-only">{t.medical.attachments.remove(attachment.fileName)}</span>
               </Button>
             </li>
           ))}

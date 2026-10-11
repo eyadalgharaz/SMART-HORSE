@@ -1,6 +1,9 @@
+'use client';
+
 import type { LucideIcon } from 'lucide-react';
 import { AlertTriangle, CalendarClock, CheckCircle2, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { useTranslations } from '@/i18n';
 import type { TaskOverviewSummary } from '../format';
 
 /**
@@ -44,39 +47,41 @@ function SummaryTile({
 }
 
 export function TaskSummary({ summary }: { summary: TaskOverviewSummary }) {
+  const t = useTranslations();
+  const s = t.tasks.summary;
   return (
     <section aria-labelledby="task-summary-heading">
       <h2 id="task-summary-heading" className="sr-only">
-        Task summary
+        {s.heading}
       </h2>
       <ul className="grid gap-4 min-[360px]:grid-cols-2 sm:gap-5 xl:grid-cols-4">
         <SummaryTile
-          label="Due today"
+          label={s.dueToday}
           value={summary.dueToday}
           icon={CalendarClock}
           tone="neutral"
-          detail={summary.dueToday > 0 ? 'Needs attention today' : 'Nothing due today'}
+          detail={summary.dueToday > 0 ? s.needsAttentionToday : s.nothingDueToday}
         />
         <SummaryTile
-          label="Overdue"
+          label={s.overdue}
           value={summary.overdue}
           icon={AlertTriangle}
           tone={summary.overdue > 0 ? 'danger' : 'neutral'}
-          detail={summary.overdue > 0 ? 'Past their due date' : 'All caught up'}
+          detail={summary.overdue > 0 ? s.pastDueDate : s.allCaughtUp}
         />
         <SummaryTile
-          label="In progress"
+          label={s.inProgress}
           value={summary.inProgress}
           icon={Loader2}
           tone="neutral"
-          detail="Currently underway"
+          detail={s.currentlyUnderway}
         />
         <SummaryTile
-          label="Completed"
+          label={s.completed}
           value={summary.completed}
           icon={CheckCircle2}
           tone="neutral"
-          detail="All time"
+          detail={s.allTime}
         />
       </ul>
     </section>

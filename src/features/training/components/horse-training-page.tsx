@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { HorsePhoto } from '@/features/horses/components/horse-photo';
 import { HorseStatusBadge } from '@/features/horses/components/horse-status-badge';
 import { useHorse } from '@/features/horses/use-horse';
+import { useI18n } from '@/i18n';
 import {
   formatDateLabel,
   progressSeries,
@@ -41,13 +42,14 @@ import { TrainingTimelineSkeleton } from './training-skeletons';
  */
 
 function BackLink() {
+  const { t } = useI18n();
   return (
     <Link
       href="/training"
-      className="hover:text-ink -ml-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-sm font-medium text-stone-600"
+      className="hover:text-ink -ms-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-sm font-medium text-stone-600"
     >
       <ChevronLeft className="size-4 rtl:rotate-180" aria-hidden="true" />
-      Back to training
+      {t.training.backToTraining}
     </Link>
   );
 }
@@ -68,6 +70,8 @@ export function HorseTrainingPage({ horseId }: { horseId: string }) {
   const { programs, isPending: programsPending, isError: programsError } = useTrainingPrograms();
 
   const horse = horseQuery.horse;
+  const { t, tc, locale } = useI18n();
+  const p = t.training.horsePage;
   const horsePrograms = programs.filter((program) => program.horseId === horseId);
 
   if (horseQuery.isPending) {
@@ -75,7 +79,7 @@ export function HorseTrainingPage({ horseId }: { horseId: string }) {
       <div className="space-y-4">
         <BackLink />
         <div role="status" aria-busy="true" className="space-y-4">
-          <span className="sr-only">Loading horse</span>
+          <span className="sr-only">{t.common.loadingHorse}</span>
           <div className="rounded-card border border-stone-200 bg-white p-4 sm:p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <Skeleton className="rounded-card size-24 sm:size-28" />
@@ -96,9 +100,9 @@ export function HorseTrainingPage({ horseId }: { horseId: string }) {
       <div className="space-y-4">
         <BackLink />
         <EmptyState
-          title="Horse not found"
-          description="This horse doesn't exist, or it is no longer part of your farm."
-          action={<ButtonLink href="/training">Back to training</ButtonLink>}
+          title={t.common.horseNotFoundTitle}
+          description={t.common.horseNotFoundDescription}
+          action={<ButtonLink href="/training">{t.training.backToTraining}</ButtonLink>}
         />
       </div>
     );
@@ -109,15 +113,15 @@ export function HorseTrainingPage({ horseId }: { horseId: string }) {
       <div className="space-y-4">
         <BackLink />
         <ErrorState
-          title="We couldn't load this horse"
-          description="Something went wrong while loading the record. Check your connection and try again."
+          title={t.common.horseLoadErrorTitle}
+          description={t.common.recordLoadErrorDescription}
           action={
             <Button
               variant="secondary"
               onClick={() => void horseQuery.refetch()}
               loading={horseQuery.isRefetching}
             >
-              Try again
+              {t.common.tryAgain}
             </Button>
           }
         />
@@ -129,6 +133,7 @@ export function HorseTrainingPage({ horseId }: { horseId: string }) {
   const summary = summarizeHorseTraining(sessions, horsePrograms);
   const chartPoints = progressSeries(sessions);
   const loadingData = sessionsQuery.isPending || programsPending;
+  const horseName = tc(horse.name);
 
   return (
     <div className="space-y-4">
@@ -140,23 +145,23 @@ export function HorseTrainingPage({ horseId }: { horseId: string }) {
           different side. */}
       <div className="rounded-card border border-stone-200 bg-white p-4 sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <HorsePhoto name={horse.name} src={horse.imageUrl} size="lg" />
+          <HorsePhoto name={horseName} src={horse.imageUrl} size="lg" />
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <h2 className="text-xl font-semibold break-words sm:text-2xl">{horse.name}</h2>
+              <h2 className="text-xl font-semibold break-words sm:text-2xl">{horseName}</h2>
               <HorseStatusBadge status={horse.status} />
             </div>
-            <p className="mt-1 text-stone-600">{horse.breed}</p>
+            <p className="mt-1 text-stone-600">{tc(horse.breed)}</p>
           </div>
 
           <div className="flex flex-wrap gap-2 self-start sm:self-center">
             <ButtonLink href={`/horses/${horse.id}`} variant="secondary">
-              View horse profile
+              {p.viewHorseProfile}
             </ButtonLink>
             <ButtonLink href={`/training/horses/${horse.id}/new`}>
               <Plus className="size-4" aria-hidden="true" />
-              Add session
+              {p.addSession}
             </ButtonLink>
           </div>
         </div>
@@ -164,41 +169,51 @@ export function HorseTrainingPage({ horseId }: { horseId: string }) {
 
       {sessionsQuery.isError || programsError ? (
         <ErrorState
-          title="We couldn't load this horse's training history"
-          description="Something went wrong while loading the training data. Check your connection and try again."
+          title={p.historyErrorTitle}
+          description={p.historyErrorDescription}
           action={
             <Button
               variant="secondary"
               onClick={() => void sessionsQuery.refetch()}
               loading={sessionsQuery.isRefetching}
             >
-              Try again
+              {t.common.tryAgain}
             </Button>
           }
         />
       ) : (
         <>
           <Card>
-            <CardHeader title="Training summary" headingLevel={3} />
+            <CardHeader title={p.summaryTitle} headingLevel={3} />
             <CardBody className="grid gap-3 sm:grid-cols-3">
-              <SummaryFact label="Total sessions" value={String(summary.totalSessions)} />
-              <SummaryFact label="Completed sessions" value={String(summary.completedSessions)} />
+              <SummaryFact label={p.totalSessions} value={String(summary.totalSessions)} />
+              <SummaryFact label={p.completedSessions} value={String(summary.completedSessions)} />
               <SummaryFact
-                label="Current program"
-                value={summary.currentProgram?.name ?? 'None active'}
-                detail={summary.currentProgram?.trainerName ?? undefined}
-              />
-              <SummaryFact
-                label="Last session"
-                value={summary.lastSession ? formatDateLabel(summary.lastSession.date) : 'None yet'}
-                detail={summary.lastSession?.title}
-              />
-              <SummaryFact
-                label="Next session"
-                value={
-                  summary.nextSession ? formatDateLabel(summary.nextSession.date) : 'None scheduled'
+                label={p.currentProgram}
+                value={summary.currentProgram ? tc(summary.currentProgram.name) : p.noneActive}
+                detail={
+                  summary.currentProgram?.trainerName
+                    ? tc(summary.currentProgram.trainerName)
+                    : undefined
                 }
-                detail={summary.nextSession?.title}
+              />
+              <SummaryFact
+                label={p.lastSession}
+                value={
+                  summary.lastSession
+                    ? formatDateLabel(summary.lastSession.date, undefined, locale)
+                    : p.noneYet
+                }
+                detail={summary.lastSession ? tc(summary.lastSession.title) : undefined}
+              />
+              <SummaryFact
+                label={p.nextSession}
+                value={
+                  summary.nextSession
+                    ? formatDateLabel(summary.nextSession.date, undefined, locale)
+                    : p.noneScheduled
+                }
+                detail={summary.nextSession ? tc(summary.nextSession.title) : undefined}
               />
             </CardBody>
           </Card>
@@ -207,32 +222,32 @@ export function HorseTrainingPage({ horseId }: { horseId: string }) {
             <div className="grid gap-4 lg:grid-cols-2">
               <Card>
                 <CardHeader
-                  title="Distance over recent sessions"
-                  description="Completed sessions with distance tracked, oldest to most recent."
+                  title={p.distanceTitle}
+                  description={p.distanceDescription}
                   headingLevel={3}
                 />
                 <CardBody>
                   <TrainingProgressChart
                     points={chartPoints}
                     metric="distanceKm"
-                    unit="km"
-                    caption={`Distance per session for ${horse.name}, most recent tracked sessions`}
+                    unit={t.training.units.kmUnit}
+                    caption={p.distanceCaption(horseName)}
                   />
                 </CardBody>
               </Card>
 
               <Card>
                 <CardHeader
-                  title="Average speed over recent sessions"
-                  description="Completed sessions with speed tracked, oldest to most recent."
+                  title={p.speedTitle}
+                  description={p.speedDescription}
                   headingLevel={3}
                 />
                 <CardBody>
                   <TrainingProgressChart
                     points={chartPoints}
                     metric="avgSpeedKmh"
-                    unit="km/h"
-                    caption={`Average speed per session for ${horse.name}, most recent tracked sessions`}
+                    unit={t.training.units.kmhUnit}
+                    caption={p.speedCaption(horseName)}
                   />
                 </CardBody>
               </Card>
@@ -241,7 +256,7 @@ export function HorseTrainingPage({ horseId }: { horseId: string }) {
 
           {horsePrograms.length > 0 ? (
             <Card>
-              <CardHeader title="Training programs" headingLevel={3} />
+              <CardHeader title={p.programsTitle} headingLevel={3} />
               <CardBody>
                 <TrainingProgramsList programs={sortProgramsForHorse(horsePrograms)} />
               </CardBody>
@@ -250,8 +265,8 @@ export function HorseTrainingPage({ horseId }: { horseId: string }) {
 
           <Card>
             <CardHeader
-              title="Training timeline"
-              description="Every session for this horse, newest first."
+              title={p.timelineTitle}
+              description={p.timelineDescription}
               headingLevel={3}
             />
             <CardBody>
@@ -259,12 +274,12 @@ export function HorseTrainingPage({ horseId }: { horseId: string }) {
                 <TrainingTimelineSkeleton />
               ) : sessions.length === 0 ? (
                 <EmptyState
-                  title="No training history found"
-                  description={`Nothing has been recorded for ${horse.name} yet. Add the first session to start its training history.`}
+                  title={p.noHistoryTitle}
+                  description={p.noHistoryDescription(horseName)}
                   action={
                     <ButtonLink href={`/training/horses/${horse.id}/new`}>
                       <Plus className="size-4" aria-hidden="true" />
-                      Add session
+                      {p.addSession}
                     </ButtonLink>
                   }
                 />

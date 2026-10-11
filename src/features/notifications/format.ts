@@ -1,4 +1,9 @@
-import { formatRelativeTime as formatRelativeTimeBase } from '@/features/dashboard/format';
+import {
+  formatRelativeTime as formatRelativeTimeBase,
+  formatRelativeTimeLocalized,
+} from '@/features/dashboard/format';
+import { getDictionary } from '@/i18n/dictionaries';
+import type { Locale } from '@/i18n/locale';
 import type { Notification } from './types';
 
 /**
@@ -11,8 +16,11 @@ import type { Notification } from './types';
 export function formatRelativeTime(
   createdAtIso: string,
   referenceIso: string = new Date().toISOString(),
+  locale: Locale = 'en',
 ): string {
-  return formatRelativeTimeBase(createdAtIso, referenceIso);
+  return locale === 'en'
+    ? formatRelativeTimeBase(createdAtIso, referenceIso)
+    : formatRelativeTimeLocalized(createdAtIso, referenceIso, getDictionary(locale));
 }
 
 export function isUnread(notification: Notification): boolean {
@@ -37,9 +45,8 @@ export function filterNotifications(
 }
 
 /** "3 unread", "1 unread", or null when there is nothing unread to report. */
-export function formatUnreadCount(count: number): string | null {
-  if (count === 0) return null;
-  return count === 1 ? '1 unread' : `${count} unread`;
+export function formatUnreadCount(count: number, locale: Locale = 'en'): string | null {
+  return getDictionary(locale).notifications.unreadCount(count);
 }
 
 /**

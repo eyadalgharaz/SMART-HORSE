@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useGenderLabel, useHorseName, useTranslations } from '@/i18n';
+import { useGenderLabel, useHorseName, useI18n } from '@/i18n';
 import { formatAge } from '../format';
 import type { Horse } from '../types';
 import { HorsePhoto } from './horse-photo';
@@ -26,7 +26,7 @@ export function HorseCardList({ horses }: { horses: Horse[] }) {
 }
 
 function HorseCard({ horse }: { horse: Horse }) {
-  const t = useTranslations();
+  const { t, tc, locale } = useI18n();
   const displayName = useHorseName(horse.name);
   const genderLabel = useGenderLabel(horse.gender);
 
@@ -42,7 +42,7 @@ function HorseCard({ horse }: { horse: Horse }) {
             </Link>
           </h3>
           <p className="truncate text-sm text-stone-600">
-            {horse.breed} · {genderLabel} · {formatAge(horse.birthDate)}
+            {tc(horse.breed)} · {genderLabel} · {formatAge(horse.birthDate, undefined, locale)}
           </p>
           <p className="mt-2">
             <HorseStatusBadge status={horse.status} />
@@ -53,11 +53,13 @@ function HorseCard({ horse }: { horse: Horse }) {
       <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 border-t border-stone-200 pt-3 text-sm">
         <div className="flex min-w-0 gap-1.5">
           <dt className="text-stone-600">{t.horses.colorLabel}</dt>
-          <dd className="truncate font-medium">{horse.color}</dd>
+          <dd className="truncate font-medium">{tc(horse.color)}</dd>
         </div>
         <div className="flex min-w-0 gap-1.5">
           <dt className="text-stone-600">{t.horses.ownerLabel}</dt>
-          <dd className="truncate font-medium">{horse.owner?.name ?? t.horses.unassigned}</dd>
+          <dd className="truncate font-medium">
+            {horse.owner ? tc(horse.owner.name) : t.horses.unassigned}
+          </dd>
         </div>
       </dl>
     </li>

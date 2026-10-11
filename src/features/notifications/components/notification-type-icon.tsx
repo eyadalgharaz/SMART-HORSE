@@ -1,3 +1,5 @@
+'use client';
+
 import type { LucideIcon } from 'lucide-react';
 import {
   AlertTriangle,
@@ -10,7 +12,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import type { NotificationType } from '../types';
-import { notificationTypeLabels } from '../vocabulary';
+import { useTranslations } from '@/i18n';
 
 /**
  * One glyph and one tone per notification type, so the kind of notification
@@ -40,13 +42,14 @@ const typeTone: Record<NotificationType, string> = {
 };
 
 export function NotificationTypeIcon({ type }: { type: NotificationType }) {
+  const t = useTranslations();
   const Icon = typeIcons[type];
   return (
     <span
       className={`flex size-9 shrink-0 items-center justify-center rounded-full ${typeTone[type]}`}
     >
       <Icon className="size-4" aria-hidden="true" />
-      <span className="sr-only">{notificationTypeLabels[type]}</span>
+      <span className="sr-only">{t.notifications.types[type]}</span>
     </span>
   );
 }

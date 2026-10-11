@@ -1,3 +1,9 @@
+import { medicalEn } from './modules/medical.en';
+import { trainingEn } from './modules/training.en';
+import { tasksEn } from './modules/tasks.en';
+import { notificationsEn } from './modules/notifications.en';
+import { settingsEn } from './modules/settings.en';
+
 /**
  * English is the canonical dictionary: every other locale (`ar.ts`, and any
  * added later) is typed against `typeof en`, so a missing or mistyped key in
@@ -15,12 +21,101 @@ export const en = {
     signOut: 'Sign out',
     accountMenu: 'Account menu',
     close: 'Close',
+    savingChanges: 'Saving changes',
+    edit: 'Edit',
+    view: 'View',
+    viewAll: 'View all',
+    remove: 'Remove',
+    filters: 'Filters',
+    clearFilters: 'Clear filters',
+    allHorses: 'All horses',
+    allStatuses: 'All statuses',
+    filterByHorse: 'Filter by horse',
+    filterByStatus: 'Filter by status',
+    dated: 'Dated',
+    dateRangeTo: 'to',
+    fromDate: 'From date',
+    toDate: 'To date',
+    actions: 'Actions',
+    optional: 'Optional.',
+    unassigned: 'Unassigned',
+    notProvided: 'Not provided',
+    horseNotFoundTitle: 'Horse not found',
+    horseNotFoundDescription: "This horse doesn't exist, or it is no longer part of your farm.",
+    horseLoadErrorTitle: "We couldn't load this horse",
+    recordLoadErrorDescription:
+      'Something went wrong while loading the record. Check your connection and try again.',
+    loadingHorse: 'Loading horse',
+    loadingApp: 'Loading SmartHorse',
+    loadingDashboard: 'Loading your dashboard',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
+    notFound: {
+      title: 'This page does not exist',
+      description: 'The link may be out of date, or the area is not part of SmartHorse yet.',
+      action: 'Go to dashboard',
+    },
   },
   language: {
     switcherLabel: 'Language',
     english: 'English',
     arabic: 'العربية',
     switchTo: (name: string) => `Switch to ${name}`,
+  },
+  /**
+   * Relative dates shared by Health, Training, Tasks and Settings. The
+   * English wording is exactly what those modules showed before
+   * localization; Arabic follows Arabic number agreement (one/two/few/many).
+   */
+  time: {
+    today: 'Today',
+    tomorrow: 'Tomorrow',
+    yesterday: 'Yesterday',
+    inDays: (n: number) => `In ${n} days`,
+    daysAgo: (n: number) => `${n} days ago`,
+    inWeeks: (n: number) => `In ${n} ${n === 1 ? 'week' : 'weeks'}`,
+    weeksAgo: (n: number) => `${n} ${n === 1 ? 'week' : 'weeks'} ago`,
+    inMonths: (n: number) => `In ${n} ${n === 1 ? 'month' : 'months'}`,
+    monthsAgo: (n: number) => `${n} ${n === 1 ? 'month' : 'months'} ago`,
+    inYears: (n: number) => `In ${n} years`,
+    yearsAgo: (n: number) => `${n} years ago`,
+    dateWithTime: (date: string, time: string) => `${date}, ${time}`,
+    never: 'Never',
+  },
+  /** Browser-tab titles, per route. English matches each page's `metadata.title`. */
+  meta: {
+    dashboard: 'Dashboard',
+    farmOwnerDashboard: 'Farm Owner Dashboard',
+    stableManagerDashboard: 'Stable Manager Dashboard',
+    trainerDashboard: 'Trainer Dashboard',
+    workerDashboard: 'Worker Dashboard',
+    doctorDashboard: 'Doctor Dashboard',
+    horses: 'Horses',
+    addHorse: 'Add horse',
+    horseProfile: 'Horse profile',
+    editHorse: 'Edit horse',
+    health: 'Health',
+    horseMedicalHistory: 'Horse medical history',
+    addMedicalRecord: 'Add medical record',
+    editMedicalRecord: 'Edit medical record',
+    training: 'Training',
+    horseTrainingProfile: 'Horse training profile',
+    addTrainingSession: 'Add training session',
+    editTrainingSession: 'Edit training session',
+    tasks: 'Tasks',
+    addTask: 'Add task',
+    task: 'Task',
+    editTask: 'Edit task',
+    notifications: 'Notifications',
+    settings: 'Settings',
+    farmProfile: 'Farm Profile',
+    teamMembers: 'Team Members',
+    roles: 'Roles & Permissions',
+    account: 'Account',
+    signIn: 'Sign in',
+    createAccount: 'Create account',
+    forgotPassword: 'Forgot password',
+    resetPassword: 'Set a new password',
   },
   shell: {
     openNavigation: 'Open navigation',
@@ -79,6 +174,7 @@ export const en = {
       title: 'Create your account',
       description: 'Set up your account first. You can create your farm right after.',
       fullNameLabel: 'Full name',
+      fullNamePlaceholder: 'Layla Hassan',
       emailLabel: 'Email',
       passwordLabel: 'Password',
       passwordHint: 'At least 8 characters, with a letter and a number.',
@@ -354,6 +450,73 @@ export const en = {
       actions: 'Actions',
       viewHorse: (name: string) => `View ${name}`,
     },
+    loadingHorses: 'Loading horses',
+    count: (shown: number, total: number) => {
+      const noun = total === 1 ? 'horse' : 'horses';
+      return shown === total ? `${total} ${noun}` : `Showing ${shown} of ${total} ${noun}`;
+    },
+    age: {
+      years: (n: number) => `${n} ${n === 1 ? 'year' : 'years'}`,
+      months: (n: number) => `${n} ${n === 1 ? 'month' : 'months'}`,
+    },
+    noMatchTitle: 'No horses match your search',
+    noMatchDescription: 'Try a different name or number, or widen the filters.',
+    addHorse: 'Add horse',
+    addHorseDescription: "Record a new horse's identity and papers.",
+    addingHorse: 'Adding horse',
+    saveError: 'Could not save this horse.',
+    sections: {
+      basicInfo: 'Basic information',
+      identification: 'Identification',
+      ownership: 'Ownership',
+      photo: 'Photo',
+    },
+    fields: {
+      name: 'Name',
+      breed: 'Breed',
+      gender: 'Gender',
+      color: 'Color',
+      birthDate: 'Birth date',
+      age: 'Age',
+      status: 'Status',
+      registrationNumber: 'Registration number',
+      microchipNumber: 'Microchip number',
+      owner: 'Owner',
+      currentOwner: 'Current owner',
+    },
+    hints: {
+      identification: 'Leave blank if not yet issued.',
+      microchip: '15 digits, as printed on the chip certificate.',
+      owner: 'Leave blank if this horse has no assigned owner yet.',
+    },
+    placeholders: {
+      name: 'e.g. Luna',
+      breed: 'e.g. Arabian',
+      color: 'e.g. Grey',
+      registration: 'e.g. AHA-284193',
+      microchip: 'e.g. 985141002734611',
+      owner: 'e.g. Ahmed Hassan',
+    },
+    owned: 'Owned',
+    ownershipNote: 'Transfers and ownership history arrive with the Ownership module.',
+    photo: {
+      add: 'Add photo',
+      change: 'Change photo',
+      hint: 'JPG or PNG. Stored on this device only for now.',
+    },
+    records: {
+      title: 'Records',
+      description: 'These attach to the horse as each module is delivered.',
+      health: 'Health records',
+      training: 'Training records',
+      tasks: 'Tasks',
+      files: 'Files and documents',
+      notYetAvailable: 'Not yet available',
+    },
+    saved: {
+      created: 'Horse added successfully.',
+      updated: 'Horse updated successfully.',
+    },
   },
   horseNames: {
     Luna: 'Luna',
@@ -381,6 +544,11 @@ export const en = {
     Basim: 'Basim',
     Aurora: 'Aurora',
   } as Record<string, string>,
+  medical: medicalEn,
+  training: trainingEn,
+  tasks: tasksEn,
+  notifications: notificationsEn,
+  settings: settingsEn,
 };
 
 export type Dictionary = typeof en;

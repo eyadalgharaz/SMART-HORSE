@@ -1,3 +1,6 @@
+import { getDictionary } from '@/i18n/dictionaries';
+import { formatDate } from '@/i18n/format';
+import type { Locale } from '@/i18n/locale';
 import type { Horse, HorseFilters } from './types';
 import { genderLabels } from './vocabulary';
 
@@ -18,10 +21,15 @@ export function ageInYears(birthDateIso: string, reference: Date = new Date()): 
   return Math.max(age, 0);
 }
 
-/** "7 years", "1 year", and months for a foal in its first year. */
-export function formatAge(birthDateIso: string, reference: Date = new Date()): string {
+/** "7 years", "1 year", and months for a foal in its first year ("7 سنوات" in Arabic). */
+export function formatAge(
+  birthDateIso: string,
+  reference: Date = new Date(),
+  locale: Locale = 'en',
+): string {
+  const age = getDictionary(locale).horses.age;
   const years = ageInYears(birthDateIso, reference);
-  if (years >= 1) return `${years} ${years === 1 ? 'year' : 'years'}`;
+  if (years >= 1) return age.years(years);
 
   const birth = new Date(birthDateIso);
   const months = Math.max(
@@ -30,16 +38,12 @@ export function formatAge(birthDateIso: string, reference: Date = new Date()): s
       (reference.getDate() < birth.getDate() ? 1 : 0),
     0,
   );
-  return `${months} ${months === 1 ? 'month' : 'months'}`;
+  return age.months(months);
 }
 
-/** "14 Mar 2019" */
-export function formatBirthDate(birthDateIso: string): string {
-  return new Date(birthDateIso).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
+/** "14 Mar 2019" ("14 مارس 2019" in Arabic) */
+export function formatBirthDate(birthDateIso: string, locale: Locale = 'en'): string {
+  return formatDate(birthDateIso, locale);
 }
 
 /** Value of a date input ("2019-03-14") for an ISO date-time. */
@@ -56,13 +60,15 @@ export function fromDateInputValue(value: string): string {
   return new Date(year ?? 0, (month ?? 1) - 1, day ?? 1).toISOString();
 }
 
-export function formatGender(horse: Pick<Horse, 'gender'>): string {
-  return genderLabels[horse.gender];
+export function formatGender(horse: Pick<Horse, 'gender'>, locale: Locale = 'en'): string {
+  return locale === 'en'
+    ? genderLabels[horse.gender]
+    : getDictionary(locale).horses.genderLabels[horse.gender];
 }
 
 /** "Mare · 7 years" — the one-line identity summary used in headers and cards. */
-export function formatIdentityLine(horse: Horse, reference?: Date): string {
-  return `${genderLabels[horse.gender]} · ${formatAge(horse.birthDate, reference)}`;
+export function formatIdentityLine(horse: Horse, reference?: Date, locale: Locale = 'en'): string {
+  return `${formatGender(horse, locale)} · ${formatAge(horse.birthDate, reference, locale)}`;
 }
 
 /** Breeds present in the current data, alphabetical — the filter's option list. */
@@ -70,17 +76,38 @@ export function breedsOf(horses: Horse[]): string[] {
   return [...new Set(horses.map((horse) => horse.breed))].sort((a, b) => a.localeCompare(b));
 }
 
-function matchesSearch(horse: Horse, search: string): boolean {
+/**
+ * Matches a search term against a record's text fields. `localize`, when
+ * given, also matches each field's displayed translation — so a search typed
+ * in Arabic finds "ليلى" just as a search in English finds "Luna".
+ */
+export function matchesAnyField(
+  fields: (string | null | undefined)[],
+  search: string,
+  localize?: (text: string) => string,
+): boolean {
   const term = search.trim().toLowerCase();
   if (!term) return true;
-  return [
-    horse.name,
-    horse.breed,
-    horse.color,
-    horse.registrationNumber,
-    horse.microchipNumber,
-    horse.owner?.name,
-  ].some((field) => field?.toLowerCase().includes(term));
+  return fields.some((field) => {
+    if (!field) return false;
+    if (field.toLowerCase().includes(term)) return true;
+    return localize ? localize(field).toLowerCase().includes(term) : false;
+  });
+}
+
+function matchesSearch(horse: Horse, search: string, localize?: (text: string) => string): boolean {
+  return matchesAnyField(
+    [
+      horse.name,
+      horse.breed,
+      horse.color,
+      horse.registrationNumber,
+      horse.microchipNumber,
+      horse.owner?.name,
+    ],
+    search,
+    localize,
+  );
 }
 
 /**
@@ -88,10 +115,14 @@ function matchesSearch(horse: Horse, search: string): boolean {
  * each other. When the API arrives this rule moves into the query string; the
  * hook keeps the same signature, so no component changes.
  */
-export function filterHorses(horses: Horse[], filters: HorseFilters): Horse[] {
+export function filterHorses(
+  horses: Horse[],
+  filters: HorseFilters,
+  localize?: (text: string) => string,
+): Horse[] {
   return horses.filter(
     (horse) =>
-      matchesSearch(horse, filters.search) &&
+      matchesSearch(horse, filters.search, localize) &&
       (filters.breed === null || horse.breed === filters.breed) &&
       (filters.gender === null || horse.gender === filters.gender) &&
       (filters.status === null || horse.status === filters.status),
@@ -105,7 +136,6 @@ export function hasActiveFilters(filters: HorseFilters): boolean {
 }
 
 /** "42 horses", "1 horse", or "Showing 8 of 42 horses" while filters are on. */
-export function formatHorseCount(shown: number, total: number): string {
-  if (shown === total) return `${total} ${total === 1 ? 'horse' : 'horses'}`;
-  return `Showing ${shown} of ${total} ${total === 1 ? 'horse' : 'horses'}`;
+export function formatHorseCount(shown: number, total: number, locale: Locale = 'en'): string {
+  return getDictionary(locale).horses.count(shown, total);
 }

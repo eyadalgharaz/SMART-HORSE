@@ -1,8 +1,13 @@
 import type { ReactNode } from 'react';
 import { Brand } from '@/components/layout/brand';
+import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import { cn } from '@/lib/cn';
 
-/** Shared frame for the four authentication screens. */
+/**
+ * Shared frame for the four authentication screens. The language switcher
+ * sits beside the wordmark, so a person can choose Arabic or English before
+ * signing in — not only once inside the app.
+ */
 export function AuthCard({
   title,
   description,
@@ -24,7 +29,10 @@ export function AuthCard({
 }) {
   return (
     <div className={cn('w-full', maxWidth)}>
-      <Brand className="mb-8" />
+      <div className="mb-8 flex items-center justify-between gap-3">
+        <Brand />
+        <LanguageSwitcher />
+      </div>
       <div className="rounded-card border border-stone-200 bg-white px-6 py-7">
         <h1 className="text-xl font-semibold">{title}</h1>
         {description ? <p className="mt-1 text-sm text-stone-600">{description}</p> : null}

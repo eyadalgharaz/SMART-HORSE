@@ -1,5 +1,9 @@
-import { calendarDayDifference, pluralize } from '@/features/dashboard/format';
-import { toDateInputValue } from '@/features/horses/format';
+import { calendarDayDifference } from '@/features/dashboard/format';
+import { matchesAnyField, toDateInputValue } from '@/features/horses/format';
+import { getDictionary } from '@/i18n/dictionaries';
+import { formatDate, formatDayMonth } from '@/i18n/format';
+import type { Locale } from '@/i18n/locale';
+import { relativeDateLabel, relativeDistanceLabel } from '@/i18n/relative';
 import type {
   AttachmentType,
   HorseHealth,
@@ -29,27 +33,23 @@ export function dayOffset(iso: string, reference: Date = new Date()): number {
   return calendarDayDifference(new Date(iso), reference);
 }
 
-/** "18 Sep 2026" */
-export function formatRecordDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
+/** "18 Sep 2026" ("18 سبتمبر 2026" in Arabic) */
+export function formatRecordDate(iso: string, locale: Locale = 'en'): string {
+  return formatDate(iso, locale);
 }
 
 /** "18 Sep" — the year is carried by the timeline's year heading. */
-export function formatShortDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+export function formatShortDate(iso: string, locale: Locale = 'en'): string {
+  return formatDayMonth(iso, locale);
 }
 
 /** "Today", "Tomorrow", "Yesterday", otherwise "18 Sep 2026". */
-export function formatDateLabel(iso: string, reference: Date = new Date()): string {
-  const difference = dayOffset(iso, reference);
-  if (difference === 0) return 'Today';
-  if (difference === 1) return 'Tomorrow';
-  if (difference === -1) return 'Yesterday';
-  return formatRecordDate(iso);
+export function formatDateLabel(
+  iso: string,
+  reference: Date = new Date(),
+  locale: Locale = 'en',
+): string {
+  return relativeDateLabel(iso, reference, locale);
 }
 
 /**
@@ -57,42 +57,27 @@ export function formatDateLabel(iso: string, reference: Date = new Date()): stri
  * date is from now, coarser the further it is, because "In 43 days" says less
  * than "In 6 weeks".
  */
-export function formatRelativeDay(iso: string, reference: Date = new Date()): string {
-  const difference = dayOffset(iso, reference);
-  if (difference === 0) return 'Today';
-  if (difference === 1) return 'Tomorrow';
-  if (difference === -1) return 'Yesterday';
-
-  const future = difference > 0;
-  const distance = Math.abs(difference);
-
-  let amount: string;
-  if (distance < 14) amount = `${distance} days`;
-  else if (distance < 60) {
-    const weeks = Math.round(distance / 7);
-    amount = `${weeks} ${pluralize(weeks, 'week')}`;
-  } else if (distance < 730) {
-    const months = Math.round(distance / 30.4);
-    amount = `${months} ${pluralize(months, 'month')}`;
-  } else {
-    const years = Math.floor(distance / 365);
-    amount = `${years} years`;
-  }
-
-  return future ? `In ${amount}` : `${amount} ago`;
+export function formatRelativeDay(
+  iso: string,
+  reference: Date = new Date(),
+  locale: Locale = 'en',
+): string {
+  return relativeDistanceLabel(iso, reference, locale);
 }
 
-/** "2.4 MB", "310 KB", "512 B". */
-export function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+/** "2.4 MB", "310 KB", "512 B" ("2.4 ميغابايت" in Arabic). */
+export function formatFileSize(bytes: number, locale: Locale = 'en'): string {
+  const units = locale === 'ar' ? ['بايت', 'كيلوبايت', 'ميغابايت'] : ['B', 'KB', 'MB'];
+  if (bytes < 1024) return `${bytes} ${units[0]}`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} ${units[1]}`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} ${units[2]}`;
 }
 
 /** "Willow, Duke +1" — a short list that never grows past `max` names. */
-export function formatNameList(names: string[], max = 2): string {
-  if (names.length <= max) return names.join(', ');
-  return `${names.slice(0, max).join(', ')} +${names.length - max}`;
+export function formatNameList(names: string[], max = 2, locale: Locale = 'en'): string {
+  const separator = locale === 'ar' ? '، ' : ', ';
+  if (names.length <= max) return names.join(separator);
+  return `${names.slice(0, max).join(separator)} +${names.length - max}`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -156,31 +141,43 @@ export function groupRecordsByYear(
  * Picks the most specific thing the record has and never invents text for a
  * record that has nothing to say.
  */
-export function recordSummary(record: MedicalRecord): string | null {
+export function recordSummary(
+  record: MedicalRecord,
+  locale: Locale = 'en',
+  localize: (text: string) => string = (text) => text,
+): string | null {
+  const t = getDictionary(locale).medical.recordSummary;
   if (record.recordType === 'vaccination' && record.vaccine) {
     return record.vaccine.nextDueDate
-      ? `${record.vaccine.name} · next dose due ${formatRecordDate(record.vaccine.nextDueDate)}`
-      : record.vaccine.name;
+      ? t.nextDoseDue(
+          localize(record.vaccine.name),
+          formatRecordDate(record.vaccine.nextDueDate, locale),
+        )
+      : localize(record.vaccine.name);
   }
-  return (
-    record.diagnosis ??
-    record.treatment ??
-    (record.medication ? `Medication: ${record.medication}` : null) ??
-    record.notes
-  );
+  if (record.diagnosis) return localize(record.diagnosis);
+  if (record.treatment) return localize(record.treatment);
+  if (record.medication) return t.medication(localize(record.medication));
+  return record.notes ? localize(record.notes) : null;
 }
 
-function matchesSearch(record: MedicalRecord, search: string): boolean {
-  const term = search.trim().toLowerCase();
-  if (!term) return true;
-  return [
-    record.horseName,
-    record.title,
-    record.diagnosis,
-    record.veterinarian,
-    record.medication,
-    record.vaccine?.name,
-  ].some((field) => field?.toLowerCase().includes(term));
+function matchesSearch(
+  record: MedicalRecord,
+  search: string,
+  localize?: (text: string) => string,
+): boolean {
+  return matchesAnyField(
+    [
+      record.horseName,
+      record.title,
+      record.diagnosis,
+      record.veterinarian,
+      record.medication,
+      record.vaccine?.name,
+    ],
+    search,
+    localize,
+  );
 }
 
 function withinDateRange(record: MedicalRecord, from: string, to: string): boolean {
@@ -198,10 +195,11 @@ function withinDateRange(record: MedicalRecord, from: string, to: string): boole
 export function filterMedicalRecords(
   records: MedicalRecord[],
   filters: MedicalRecordFilters,
+  localize?: (text: string) => string,
 ): MedicalRecord[] {
   return records.filter(
     (record) =>
-      matchesSearch(record, filters.search) &&
+      matchesSearch(record, filters.search, localize) &&
       (filters.horseId === null || record.horseId === filters.horseId) &&
       (filters.recordType === null || record.recordType === filters.recordType) &&
       (filters.status === null || record.status === filters.status) &&
@@ -229,9 +227,8 @@ export function activeMedicalFilterCount(filters: MedicalRecordFilters): number 
 }
 
 /** "46 records", "1 record", or "Showing 8 of 46 records" while filters are on. */
-export function formatRecordCount(shown: number, total: number): string {
-  const noun = pluralize(total, 'record');
-  return shown === total ? `${total} ${noun}` : `Showing ${shown} of ${total} ${noun}`;
+export function formatRecordCount(shown: number, total: number, locale: Locale = 'en'): string {
+  return getDictionary(locale).medical.counts.records(shown, total);
 }
 
 /** The most recent completed visit that a vet attended, or null if there has not been one. */
@@ -342,9 +339,12 @@ export function hasActiveVaccinationFilters(filters: VaccinationFilters): boolea
 }
 
 /** "16 vaccinations", "1 vaccination", or "Showing 3 of 16 vaccinations". */
-export function formatVaccinationCount(shown: number, total: number): string {
-  const noun = pluralize(total, 'vaccination');
-  return shown === total ? `${total} ${noun}` : `Showing ${shown} of ${total} ${noun}`;
+export function formatVaccinationCount(
+  shown: number,
+  total: number,
+  locale: Locale = 'en',
+): string {
+  return getDictionary(locale).medical.counts.vaccinations(shown, total);
 }
 
 /**

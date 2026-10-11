@@ -9,11 +9,8 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { ar } from './dictionaries/ar';
-import { en, type Dictionary } from './dictionaries/en';
+import { dictionaries, type Dictionary } from './dictionaries';
 import { defaultLocale, directionOf, isLocale, STORAGE_KEY, type Locale } from './locale';
-
-const dictionaries: Record<Locale, Dictionary> = { en, ar };
 
 interface LocaleContextValue {
   locale: Locale;

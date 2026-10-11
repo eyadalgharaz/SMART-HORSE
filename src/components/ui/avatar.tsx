@@ -1,6 +1,11 @@
 import { cn } from '@/lib/cn';
 
+const ARABIC = /[\u0600-\u06FF]/;
+
 function initials(name: string): string {
+  // Arabic letters join, so two initials would fuse into a syllable; a single
+  // letter is the conventional Arabic monogram.
+  if (ARABIC.test(name)) return name.trim().charAt(0);
   return name
     .split(/\s+/)
     .filter(Boolean)

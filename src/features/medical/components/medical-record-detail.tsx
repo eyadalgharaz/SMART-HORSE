@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { Pencil } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
+import { useI18n } from '@/i18n';
 import { formatRecordDate, formatRelativeDay } from '../format';
 import type { MedicalRecord } from '../types';
-import { NOT_RECORDED, recordTypeLabels } from '../vocabulary';
 import { MedicalAttachmentList } from './medical-attachment-list';
 import { MedicalStatusBadge, RecordTypeLabel } from './medical-status-badge';
 
@@ -21,6 +21,7 @@ import { MedicalStatusBadge, RecordTypeLabel } from './medical-status-badge';
  */
 
 function Field({ label, value }: { label: string; value: string | null }) {
+  const { t } = useI18n();
   return (
     <div className="min-w-0">
       <dt className="text-sm text-stone-600">{label}</dt>
@@ -31,7 +32,7 @@ function Field({ label, value }: { label: string; value: string | null }) {
             : 'mt-0.5 text-stone-500 italic'
         }
       >
-        {value ?? NOT_RECORDED}
+        {value ?? t.medical.notRecorded}
       </dd>
     </div>
   );
@@ -46,21 +47,26 @@ export function MedicalRecordDetail({
   open: boolean;
   onClose: () => void;
 }) {
+  const { t, tc, locale } = useI18n();
   if (!record) return null;
+
+  const f = t.medical.fields;
+  const d = t.medical.detail;
+  const localized = (value: string | null) => (value ? tc(value) : null);
 
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title={record.title}
-      description={`${record.horseName} · ${formatRecordDate(record.date)}`}
+      title={tc(record.title)}
+      description={`${tc(record.horseName)} · ${formatRecordDate(record.date, locale)}`}
       footer={
         <ButtonLink
           href={`/medical/horses/${record.horseId}/edit/${record.id}`}
           variant="secondary"
         >
           <Pencil className="size-4" aria-hidden="true" />
-          Edit record
+          {d.editRecord}
         </ButtonLink>
       }
     >
@@ -71,73 +77,75 @@ export function MedicalRecordDetail({
         </div>
 
         <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
-          <Field label="Date" value={formatRecordDate(record.date)} />
+          <Field label={f.date} value={formatRecordDate(record.date, locale)} />
           <div className="min-w-0">
-            <dt className="text-sm text-stone-600">Horse</dt>
+            <dt className="text-sm text-stone-600">{f.horse}</dt>
             <dd className="mt-0.5 font-medium">
               <Link
                 href={`/medical/horses/${record.horseId}`}
                 className="hover:text-pasture-600 underline underline-offset-2"
               >
-                {record.horseName}
+                {tc(record.horseName)}
               </Link>
             </dd>
           </div>
-          <Field label="Veterinarian" value={record.veterinarian} />
-          <Field label="Record type" value={recordTypeLabels[record.recordType]} />
+          <Field label={f.veterinarian} value={localized(record.veterinarian)} />
+          <Field label={f.recordType} value={t.medical.recordTypes[record.recordType]} />
         </dl>
 
         <div className="border-t border-stone-200 pt-4">
-          <h3 className="text-sm font-semibold">Clinical information</h3>
+          <h3 className="text-sm font-semibold">{d.clinical}</h3>
           <dl className="mt-3 grid gap-x-6 gap-y-4 sm:grid-cols-2">
-            <Field label="Diagnosis" value={record.diagnosis} />
-            <Field label="Medication" value={record.medication} />
+            <Field label={f.diagnosis} value={localized(record.diagnosis)} />
+            <Field label={f.medication} value={localized(record.medication)} />
             <div className="sm:col-span-2">
-              <Field label="Treatment" value={record.treatment} />
+              <Field label={f.treatment} value={localized(record.treatment)} />
             </div>
             {record.vaccine ? (
               <>
-                <Field label="Vaccine" value={record.vaccine.name} />
+                <Field label={f.vaccine} value={tc(record.vaccine.name)} />
                 <Field
-                  label="Next dose due"
+                  label={f.nextDoseDue}
                   value={
-                    record.vaccine.nextDueDate ? formatRecordDate(record.vaccine.nextDueDate) : null
+                    record.vaccine.nextDueDate
+                      ? formatRecordDate(record.vaccine.nextDueDate, locale)
+                      : null
                   }
                 />
               </>
             ) : null}
             <div className="sm:col-span-2">
-              <Field label="Notes" value={record.notes} />
+              <Field label={f.notes} value={localized(record.notes)} />
             </div>
           </dl>
         </div>
 
         <div className="border-t border-stone-200 pt-4">
-          <h3 className="text-sm font-semibold">Follow-up</h3>
+          <h3 className="text-sm font-semibold">{d.followUp}</h3>
           {record.followUpDate ? (
             <dl className="mt-3 grid gap-x-6 gap-y-4 sm:grid-cols-2">
               <div className="min-w-0">
-                <dt className="text-sm text-stone-600">Follow-up date</dt>
+                <dt className="text-sm text-stone-600">{f.followUpDate}</dt>
                 <dd className="mt-0.5 font-medium">
                   <time dateTime={record.followUpDate}>
-                    {formatRecordDate(record.followUpDate)}
+                    {formatRecordDate(record.followUpDate, locale)}
                   </time>
-                  <span className="ml-2 font-normal text-stone-600">
-                    ({formatRelativeDay(record.followUpDate)})
+                  <span className="ms-2 font-normal text-stone-600">
+                    ({formatRelativeDay(record.followUpDate, undefined, locale)})
                   </span>
                 </dd>
               </div>
               <div className="sm:col-span-2">
-                <Field label="Follow-up notes" value={record.followUpNotes} />
+                <Field label={f.followUpNotes} value={localized(record.followUpNotes)} />
               </div>
             </dl>
           ) : (
-            <p className="mt-2 text-sm text-stone-600">No follow-up was planned for this record.</p>
+            <p className="mt-2 text-sm text-stone-600">{d.noFollowUp}</p>
           )}
         </div>
 
         <div className="border-t border-stone-200 pt-4">
-          <h3 className="text-sm font-semibold">Attachments</h3>
+          <h3 className="text-sm font-semibold">{d.attachments}</h3>
           <div className="mt-3">
             <MedicalAttachmentList attachments={record.attachments} />
           </div>

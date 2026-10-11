@@ -3,6 +3,7 @@
 import { useId, useRef } from 'react';
 import { ImagePlus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from '@/i18n';
 import { HorsePhoto } from './horse-photo';
 
 /**
@@ -24,6 +25,7 @@ export function HorseImageField({
 }) {
   const inputId = useId();
   const objectUrl = useRef<string | null>(null);
+  const t = useTranslations();
 
   function handleFile(file: File | undefined) {
     if (!file) return;
@@ -52,12 +54,12 @@ export function HorseImageField({
             className="text-ink inline-flex h-8 cursor-pointer items-center justify-center gap-2 rounded-md border border-stone-300 bg-white px-3 text-sm font-medium hover:bg-stone-100"
           >
             <ImagePlus className="size-4" aria-hidden="true" />
-            {value ? 'Change photo' : 'Add photo'}
+            {value ? t.horses.photo.change : t.horses.photo.add}
           </label>
           {value ? (
             <Button variant="ghost" size="sm" type="button" onClick={handleRemove}>
               <X className="size-4" aria-hidden="true" />
-              Remove
+              {t.common.remove}
             </Button>
           ) : null}
         </div>
@@ -68,7 +70,7 @@ export function HorseImageField({
           className="sr-only"
           onChange={(event) => handleFile(event.target.files?.[0])}
         />
-        <p className="text-xs text-stone-600">JPG or PNG. Stored on this device only for now.</p>
+        <p className="text-xs text-stone-600">{t.horses.photo.hint}</p>
       </div>
     </div>
   );

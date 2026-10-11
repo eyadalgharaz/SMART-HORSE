@@ -1,4 +1,7 @@
+'use client';
+
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslations } from '@/i18n';
 
 export function TaskSummarySkeleton() {
   return (
@@ -15,9 +18,10 @@ export function TaskSummarySkeleton() {
 }
 
 export function TaskListSkeleton() {
+  const t = useTranslations();
   return (
     <div role="status" aria-busy="true">
-      <span className="sr-only">Loading tasks</span>
+      <span className="sr-only">{t.tasks.loading.tasks}</span>
 
       <div className="rounded-card hidden divide-y divide-stone-200 border border-stone-200 bg-white lg:block">
         {Array.from({ length: 6 }, (_, index) => (
@@ -48,9 +52,10 @@ export function TaskListSkeleton() {
 }
 
 export function TaskDetailSkeleton() {
+  const t = useTranslations();
   return (
     <div role="status" aria-busy="true" className="space-y-4">
-      <span className="sr-only">Loading task</span>
+      <span className="sr-only">{t.tasks.loading.task}</span>
       <div className="rounded-card border border-stone-200 bg-white p-4 sm:p-5">
         <Skeleton className="h-6 w-56" />
         <Skeleton className="mt-3 h-4 w-full max-w-md" />
@@ -65,9 +70,10 @@ export function TaskDetailSkeleton() {
 }
 
 export function TaskFormSkeleton() {
+  const t = useTranslations();
   return (
     <div role="status" aria-busy="true" className="space-y-4">
-      <span className="sr-only">Loading task</span>
+      <span className="sr-only">{t.tasks.loading.task}</span>
       {Array.from({ length: 4 }, (_, index) => (
         <div key={index} className="rounded-card border border-stone-200 bg-white p-5">
           <Skeleton className="h-5 w-40" />

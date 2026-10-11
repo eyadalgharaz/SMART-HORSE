@@ -6,7 +6,7 @@ import { Button, ButtonLink } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { PageHeader } from '@/components/layout/page-header';
-import { useTranslations } from '@/i18n';
+import { useI18n, useTabArrowKeys } from '@/i18n';
 import { cn } from '@/lib/cn';
 import {
   dayOffset,
@@ -41,29 +41,18 @@ import { UpcomingTrainingSessions } from './upcoming-training-sessions';
 
 type Tab = 'sessions' | 'programs' | 'upcoming';
 
-const tabs: { id: Tab; label: string }[] = [
-  { id: 'sessions', label: 'Sessions' },
-  { id: 'programs', label: 'Programs' },
-  { id: 'upcoming', label: 'Upcoming' },
-];
+const tabIds: readonly Tab[] = ['sessions', 'programs', 'upcoming'];
+const tabElementId = (id: Tab) => `training-tab-${id}`;
 
 function Tabs({ current, onChange }: { current: Tab; onChange: (tab: Tab) => void }) {
-  function onKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-    const index = tabs.findIndex((tab) => tab.id === current);
-    const delta = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
-    if (delta === 0) return;
-    event.preventDefault();
-    const next = tabs[(index + delta + tabs.length) % tabs.length];
-    if (next) {
-      onChange(next.id);
-      document.getElementById(`training-tab-${next.id}`)?.focus();
-    }
-  }
+  const { t } = useI18n();
+  const onKeyDown = useTabArrowKeys(tabIds, current, onChange, tabElementId);
+  const tabs = tabIds.map((id) => ({ id, label: t.training.overview.tabs[id] }));
 
   return (
     <div
       role="tablist"
-      aria-label="Training sections"
+      aria-label={t.training.overview.tabsLabel}
       onKeyDown={onKeyDown}
       className="flex gap-1 overflow-x-auto border-b border-stone-200"
     >
@@ -95,7 +84,8 @@ function Tabs({ current, onChange }: { current: Tab; onChange: (tab: Tab) => voi
 }
 
 export function TrainingOverviewPage() {
-  const t = useTranslations();
+  const { t, locale } = useI18n();
+  const o = t.training.overview;
   const [tab, setTab] = useState<Tab>('sessions');
   const [filters, setFilters] = useState<TrainingSessionFilters>(emptyTrainingSessionFilters);
 
@@ -165,12 +155,12 @@ export function TrainingOverviewPage() {
           horses[0] ? (
             <ButtonLink href={`/training/horses/${horses[0].id}/new`}>
               <Plus className="size-4" aria-hidden="true" />
-              Add training session
+              {o.addSession}
             </ButtonLink>
           ) : (
             <ButtonLink href="/horses">
               <Plus className="size-4" aria-hidden="true" />
-              Add training session
+              {o.addSession}
             </ButtonLink>
           )
         }
@@ -183,9 +173,9 @@ export function TrainingOverviewPage() {
 
         {totalCount === 0 && !loading ? (
           <EmptyState
-            title="No training sessions yet"
-            description="Open a horse's profile and add its first training session to start building its history."
-            action={<ButtonLink href="/horses">Browse horses</ButtonLink>}
+            title={o.emptyTitle}
+            description={o.emptyDescription}
+            action={<ButtonLink href="/horses">{o.browseHorses}</ButtonLink>}
           />
         ) : (
           <div>
@@ -213,19 +203,19 @@ export function TrainingOverviewPage() {
                 ) : (
                   <>
                     <p role="status" className="text-sm text-stone-600">
-                      {formatSessionCount(sessions.length, totalCount)}
+                      {formatSessionCount(sessions.length, totalCount, locale)}
                     </p>
 
                     {sessions.length === 0 ? (
                       <EmptyState
-                        title="No sessions match your search"
-                        description="Try a different term, or widen the filters and date range."
+                        title={o.noMatchTitle}
+                        description={o.noMatchDescription}
                         action={
                           <Button
                             variant="secondary"
                             onClick={() => setFilters(emptyTrainingSessionFilters)}
                           >
-                            Clear filters
+                            {t.common.clearFilters}
                           </Button>
                         }
                       />
@@ -246,11 +236,11 @@ export function TrainingOverviewPage() {
               className="pt-4"
             >
               {programsPending ? (
-                <TrainingListSkeleton label="Loading training programs" />
+                <TrainingListSkeleton label={o.loadingPrograms} />
               ) : programsError ? (
                 <ErrorState
-                  title="We couldn't load your training programs"
-                  description="Something went wrong while loading the programs. Check your connection and try again."
+                  title={o.programsErrorTitle}
+                  description={o.programsErrorDescription}
                   action={
                     <Button
                       variant="secondary"
@@ -262,10 +252,7 @@ export function TrainingOverviewPage() {
                   }
                 />
               ) : programs.length === 0 ? (
-                <EmptyState
-                  title="No training programs yet"
-                  description="Programs appear here once one is set up for a horse."
-                />
+                <EmptyState title={o.programsEmptyTitle} description={o.programsEmptyDescription} />
               ) : (
                 <TrainingProgramsList programs={programs} />
               )}
@@ -281,9 +268,7 @@ export function TrainingOverviewPage() {
             >
               <div className="rounded-card border border-stone-200 bg-white p-4 sm:p-5">
                 {upcoming.length === 0 ? (
-                  <p className="text-sm text-stone-600">
-                    No upcoming training sessions. Nothing is scheduled right now.
-                  </p>
+                  <p className="text-sm text-stone-600">{o.upcomingEmpty}</p>
                 ) : (
                   <UpcomingTrainingSessions sessions={upcoming} />
                 )}

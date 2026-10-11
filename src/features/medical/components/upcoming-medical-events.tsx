@@ -3,6 +3,7 @@
 import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { CalendarCheck, Pill, Stethoscope, Syringe } from 'lucide-react';
+import { useI18n } from '@/i18n';
 import {
   formatRecordDate,
   formatRelativeDay,
@@ -10,7 +11,6 @@ import {
   upcomingEventStatus,
 } from '../format';
 import type { UpcomingEventKind, UpcomingMedicalEvent } from '../types';
-import { upcomingEventKindLabels } from '../vocabulary';
 import { MedicalStatusBadge } from './medical-status-badge';
 
 /**
@@ -42,6 +42,7 @@ export function UpcomingMedicalEvents({
   /** Keeps a summary panel short; the full list lives on the Upcoming tab. */
   limit?: number;
 }) {
+  const { t, tc, locale } = useI18n();
   const ordered = sortUpcomingEvents(events);
   const shown = limit ? ordered.slice(0, limit) : ordered;
 
@@ -50,6 +51,7 @@ export function UpcomingMedicalEvents({
       {shown.map((event) => {
         const Icon = kindIcons[event.kind];
         const status = upcomingEventStatus(event);
+        const relative = formatRelativeDay(event.date, undefined, locale);
 
         return (
           <li key={event.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">
@@ -65,30 +67,30 @@ export function UpcomingMedicalEvents({
                       href={`/medical/horses/${event.horseId}`}
                       className="hover:text-pasture-600"
                     >
-                      {event.title}
+                      {tc(event.title)}
                     </Link>
                   ) : (
-                    event.title
+                    tc(event.title)
                   )}
                 </p>
                 <p className="flex flex-wrap items-center gap-x-2 text-sm text-stone-600">
-                  {showHorse ? <span>{event.horseName}</span> : null}
-                  <span>{upcomingEventKindLabels[event.kind]}</span>
+                  {showHorse ? <span>{tc(event.horseName)}</span> : null}
+                  <span>{t.medical.eventKinds[event.kind]}</span>
                 </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 sm:shrink-0 sm:flex-col sm:items-end sm:gap-1">
                 <time dateTime={event.date} className="text-sm whitespace-nowrap text-stone-600">
-                  {formatRecordDate(event.date)}
+                  {formatRecordDate(event.date, locale)}
                 </time>
                 <span className="flex items-center gap-2">
                   <span className="text-sm whitespace-nowrap text-stone-500 sm:hidden">
-                    {formatRelativeDay(event.date)}
+                    {relative}
                   </span>
                   <MedicalStatusBadge status={status} />
                 </span>
                 <span className="hidden text-sm whitespace-nowrap text-stone-500 sm:block">
-                  {formatRelativeDay(event.date)}
+                  {relative}
                 </span>
               </div>
             </div>

@@ -1,5 +1,7 @@
+'use client';
+
 import type { ReactNode } from 'react';
-import { NOT_PROVIDED } from '../vocabulary';
+import { useNotProvided } from '@/i18n';
 
 /**
  * Label-and-value pairs for the profile, marked up as a description list so the
@@ -22,12 +24,13 @@ export function Detail({
   children?: ReactNode;
 }) {
   const missing = !children && !value;
+  const notProvided = useNotProvided();
 
   return (
     <div className="min-w-0">
       <dt className="text-sm text-stone-600">{label}</dt>
       <dd className={missing ? 'mt-0.5 text-stone-500 italic' : 'mt-0.5 font-medium break-words'}>
-        {children ?? value ?? NOT_PROVIDED}
+        {children ?? value ?? notProvided}
       </dd>
     </div>
   );

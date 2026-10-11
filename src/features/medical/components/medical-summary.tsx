@@ -1,6 +1,9 @@
+'use client';
+
 import type { LucideIcon } from 'lucide-react';
 import { CalendarClock, FileText, HeartPulse, Syringe } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { useI18n } from '@/i18n';
 import { formatNameList, formatRecordDate, type OverviewSummary } from '../format';
 
 /**
@@ -41,49 +44,57 @@ function SummaryTile({
 }
 
 export function MedicalSummary({ summary }: { summary: OverviewSummary }) {
+  const { t, tc, locale } = useI18n();
+  const s = t.medical.summary;
   const { attention, vaccinations, visits, recent } = summary;
 
   return (
     <section aria-labelledby="medical-summary-heading">
       <h2 id="medical-summary-heading" className="sr-only">
-        Health summary
+        {s.heading}
       </h2>
       <ul className="grid gap-4 min-[360px]:grid-cols-2 sm:gap-5 xl:grid-cols-4">
         <SummaryTile
-          label="Horses requiring attention"
+          label={s.attention}
           value={attention.count}
           icon={HeartPulse}
-          detail={attention.count > 0 ? formatNameList(attention.names) : 'None right now'}
-        />
-
-        <SummaryTile
-          label="Vaccinations due"
-          value={vaccinations.count}
-          icon={Syringe}
           detail={
-            vaccinations.overdue > 0
-              ? `${vaccinations.overdue} overdue`
-              : vaccinations.nextDate
-                ? `Next: ${formatRecordDate(vaccinations.nextDate)}`
-                : 'All up to date'
+            attention.count > 0
+              ? formatNameList(attention.names.map(tc), 2, locale)
+              : s.noneRightNow
           }
         />
 
         <SummaryTile
-          label="Upcoming vet visits"
-          value={visits.count}
-          icon={CalendarClock}
-          detail={visits.nextDate ? `Next: ${formatRecordDate(visits.nextDate)}` : 'None scheduled'}
+          label={s.vaccinationsDue}
+          value={vaccinations.count}
+          icon={Syringe}
+          detail={
+            vaccinations.overdue > 0
+              ? s.overdueCount(vaccinations.overdue)
+              : vaccinations.nextDate
+                ? s.next(formatRecordDate(vaccinations.nextDate, locale))
+                : s.allUpToDate
+          }
         />
 
         <SummaryTile
-          label="Records last 30 days"
+          label={s.upcomingVisits}
+          value={visits.count}
+          icon={CalendarClock}
+          detail={
+            visits.nextDate ? s.next(formatRecordDate(visits.nextDate, locale)) : s.noneScheduled
+          }
+        />
+
+        <SummaryTile
+          label={s.recentRecords}
           value={recent.count}
           icon={FileText}
           detail={
             recent.latest
-              ? `Latest: ${recent.latest.horseName}, ${formatRecordDate(recent.latest.date)}`
-              : 'Nothing recorded yet'
+              ? s.latest(tc(recent.latest.horseName), formatRecordDate(recent.latest.date, locale))
+              : s.nothingRecorded
           }
         />
       </ul>

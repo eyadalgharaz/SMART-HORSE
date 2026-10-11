@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { ErrorState } from '@/components/ui/error-state';
+import { useTranslations } from '@/i18n';
 import { useAccount } from '../hooks/use-account';
 import { useAccountPreferences } from '../hooks/use-preferences';
 import { AccountPasswordForm } from './account-password-form';
@@ -19,22 +20,24 @@ import { AccountSkeleton } from './settings-skeletons';
 export function AccountPage() {
   const { account, isPending, isError, isRefetching, refetch } = useAccount();
   const { preferences, isPending: preferencesPending } = useAccountPreferences();
+  const t = useTranslations();
+  const a = t.settings.account;
 
   return (
     <SettingsSectionLayout
-      title="Account"
-      description="Manage your personal profile and account preferences."
+      title={t.settings.sections.account.title}
+      description={a.pageDescription}
     >
       <div className="space-y-4">
         <SettingsSavedMessage />
 
         {isError ? (
           <ErrorState
-            title="We couldn't load your account"
-            description="Something went wrong while loading your account. Check your connection and try again."
+            title={a.loadErrorTitle}
+            description={a.loadErrorDescription}
             action={
               <Button variant="secondary" onClick={() => void refetch()} loading={isRefetching}>
-                Try again
+                {t.common.tryAgain}
               </Button>
             }
           />

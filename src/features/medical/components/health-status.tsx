@@ -1,4 +1,7 @@
+'use client';
+
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
+import { useI18n } from '@/i18n';
 import { formatRelativeDay } from '../format';
 import type { HorseHealth } from '../types';
 import { MedicalStatusBadge } from './medical-status-badge';
@@ -12,24 +15,24 @@ import { MedicalStatusBadge } from './medical-status-badge';
  * someone set it rather than to the system.
  */
 export function HealthStatusCard({ health }: { health: HorseHealth | null }) {
+  const { t, tc, locale } = useI18n();
+
   return (
     <Card className="flex h-full flex-col">
-      <CardHeader title="Health status" headingLevel={3} />
+      <CardHeader title={t.medical.healthCard.title} headingLevel={3} />
       <CardBody className="flex flex-1 flex-col gap-2">
         {health ? (
           <>
             <div>
               <MedicalStatusBadge status={health.status} />
             </div>
-            {health.note ? <p className="text-sm">{health.note}</p> : null}
+            {health.note ? <p className="text-sm">{tc(health.note)}</p> : null}
             <p className="mt-auto text-sm text-stone-600">
-              Set {formatRelativeDay(health.updatedAt).toLowerCase()}
+              {t.medical.healthCard.setWhen(formatRelativeDay(health.updatedAt, undefined, locale))}
             </p>
           </>
         ) : (
-          <p className="text-sm text-stone-600">
-            No health status has been recorded for this horse yet.
-          </p>
+          <p className="text-sm text-stone-600">{t.medical.healthCard.none}</p>
         )}
       </CardBody>
     </Card>

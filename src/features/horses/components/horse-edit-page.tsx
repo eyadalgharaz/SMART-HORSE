@@ -46,7 +46,7 @@ export function HorseEditPage({ horseId }: { horseId: string }) {
   if (isPending) {
     return (
       <>
-        <PageHeader title="Edit horse" />
+        <PageHeader title={t.horses.editHorse} />
         <FormSkeleton />
       </>
     );
@@ -55,11 +55,11 @@ export function HorseEditPage({ horseId }: { horseId: string }) {
   if (notFound || !horse) {
     return (
       <>
-        <PageHeader title="Edit horse" />
+        <PageHeader title={t.horses.editHorse} />
         <EmptyState
-          title="Horse not found"
-          description="This horse doesn't exist, or it is no longer part of your farm."
-          action={<ButtonLink href="/horses">Back to horses</ButtonLink>}
+          title={t.common.horseNotFoundTitle}
+          description={t.common.horseNotFoundDescription}
+          action={<ButtonLink href="/horses">{t.horses.backToHorses}</ButtonLink>}
         />
       </>
     );
@@ -68,13 +68,13 @@ export function HorseEditPage({ horseId }: { horseId: string }) {
   if (isError) {
     return (
       <>
-        <PageHeader title="Edit horse" />
+        <PageHeader title={t.horses.editHorse} />
         <ErrorState
-          title="We couldn't load this horse"
-          description="Something went wrong while loading the record. Check your connection and try again."
+          title={t.common.horseLoadErrorTitle}
+          description={t.common.recordLoadErrorDescription}
           action={
             <Button variant="secondary" onClick={() => void refetch()} loading={isRefetching}>
-              Try again
+              {t.common.tryAgain}
             </Button>
           }
         />
@@ -90,8 +90,8 @@ export function HorseEditPage({ horseId }: { horseId: string }) {
       />
       <HorseForm
         horse={horse}
-        submitLabel="Save changes"
-        submittingLabel="Saving changes"
+        submitLabel={t.common.saveChanges}
+        submittingLabel={t.common.savingChanges}
         onCancelHref={`/horses/${horse.id}`}
         onSubmit={async (input) => {
           await mutateAsync(input);

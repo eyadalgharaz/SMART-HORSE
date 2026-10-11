@@ -2,6 +2,7 @@
 
 import { useId } from 'react';
 import { Select } from '@/components/ui/select';
+import { sortByLabel, useI18n } from '@/i18n';
 import {
   formatRecordDate,
   formatRelativeDay,
@@ -9,7 +10,7 @@ import {
   vaccinationTargetDate,
 } from '../format';
 import type { HorseOption, Vaccination, VaccinationFilters, VaccinationStatus } from '../types';
-import { NOT_RECORDED, vaccinationStatusOptions } from '../vocabulary';
+import { vaccinationStatusValues } from '../vocabulary';
 import { MedicalStatusBadge } from './medical-status-badge';
 
 /**
@@ -25,12 +26,6 @@ import { MedicalStatusBadge } from './medical-status-badge';
  * five-column table that narrow either scrolls sideways or shrinks past reading.
  */
 
-/** "12 Oct 2026 · In 3 weeks" — the date that matters, and how far away it is. */
-function targetLabel(vaccination: Vaccination): string | null {
-  const date = vaccinationTargetDate(vaccination);
-  return date ? `${formatRecordDate(date)} · ${formatRelativeDay(date)}` : null;
-}
-
 export function VaccinationFilterBar({
   filters,
   onChange,
@@ -41,11 +36,12 @@ export function VaccinationFilterBar({
   horses: HorseOption[];
 }) {
   const id = useId();
+  const { t, tc, locale } = useI18n();
 
   return (
     <div className="flex flex-wrap gap-2">
       <label className="sr-only" htmlFor={`${id}-horse`}>
-        Filter vaccinations by horse
+        {t.medical.filters.vaccinationsByHorse}
       </label>
       <Select
         id={`${id}-horse`}
@@ -53,16 +49,16 @@ export function VaccinationFilterBar({
         value={filters.horseId ?? ''}
         onChange={(event) => onChange({ ...filters, horseId: event.target.value || null })}
       >
-        <option value="">All horses</option>
-        {horses.map((horse) => (
+        <option value="">{t.common.allHorses}</option>
+        {sortByLabel(horses, (horse) => tc(horse.name), locale).map((horse) => (
           <option key={horse.id} value={horse.id}>
-            {horse.name}
+            {tc(horse.name)}
           </option>
         ))}
       </Select>
 
       <label className="sr-only" htmlFor={`${id}-status`}>
-        Filter vaccinations by status
+        {t.medical.filters.vaccinationsByStatus}
       </label>
       <Select
         id={`${id}-status`}
@@ -72,10 +68,10 @@ export function VaccinationFilterBar({
           onChange({ ...filters, status: (event.target.value || null) as VaccinationStatus | null })
         }
       >
-        <option value="">All statuses</option>
-        {vaccinationStatusOptions.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
+        <option value="">{t.common.allStatuses}</option>
+        {vaccinationStatusValues.map((value) => (
+          <option key={value} value={value}>
+            {t.medical.statuses[value]}
           </option>
         ))}
       </Select>
@@ -94,6 +90,9 @@ export function VaccinationList({
       vaccination card on a horse's medical profile. */
   compact?: boolean;
 }) {
+  const { t, tc, locale } = useI18n();
+  const v = t.medical.vaccinations;
+
   if (compact) {
     return <VaccinationCards vaccinations={vaccinations} showHorse={showHorse} compact />;
   }
@@ -102,29 +101,29 @@ export function VaccinationList({
     <>
       {/* Wide screens: a table. */}
       <div className="rounded-card hidden overflow-hidden border border-stone-200 bg-white lg:block">
-        <table className="w-full border-collapse text-left">
-          <caption className="sr-only">Vaccinations</caption>
+        <table className="w-full border-collapse text-start">
+          <caption className="sr-only">{v.caption}</caption>
           <thead>
             <tr className="border-b border-stone-200 text-sm text-stone-600">
               {showHorse ? (
                 <th scope="col" className="px-5 py-3 font-medium">
-                  Horse
+                  {t.medical.fields.horse}
                 </th>
               ) : null}
               <th scope="col" className={`py-3 font-medium ${showHorse ? 'px-3' : 'px-5'}`}>
-                Vaccine
+                {v.vaccine}
               </th>
               <th scope="col" className="px-3 py-3 font-medium">
-                Last given
+                {v.lastGiven}
               </th>
               <th scope="col" className="px-3 py-3 font-medium">
-                Next due
+                {v.nextDue}
               </th>
               <th scope="col" className="hidden px-3 py-3 font-medium xl:table-cell">
-                Veterinarian
+                {t.medical.fields.veterinarian}
               </th>
               <th scope="col" className="px-5 py-3 font-medium">
-                Status
+                {t.medical.fields.status}
               </th>
             </tr>
           </thead>
@@ -137,36 +136,40 @@ export function VaccinationList({
                 <tr key={vaccination.id} className="hover:bg-stone-50">
                   {showHorse ? (
                     <th scope="row" className="px-5 py-3 font-medium">
-                      {vaccination.horseName}
+                      {tc(vaccination.horseName)}
                     </th>
                   ) : null}
                   <td className={`py-3 ${showHorse ? 'px-3' : 'px-5 font-medium'}`}>
-                    {vaccination.vaccineName}
+                    {tc(vaccination.vaccineName)}
                   </td>
                   <td className="px-3 py-3 whitespace-nowrap">
                     {vaccination.administeredOn ? (
                       <time dateTime={vaccination.administeredOn}>
-                        {formatRecordDate(vaccination.administeredOn)}
+                        {formatRecordDate(vaccination.administeredOn, locale)}
                       </time>
                     ) : (
-                      <span className="text-stone-500 italic">{NOT_RECORDED}</span>
+                      <span className="text-stone-500 italic">{t.medical.notRecorded}</span>
                     )}
                   </td>
                   <td className="px-3 py-3">
                     {target ? (
                       <>
                         <time dateTime={target} className="block whitespace-nowrap">
-                          {formatRecordDate(target)}
+                          {formatRecordDate(target, locale)}
                         </time>
-                        <span className="text-sm text-stone-600">{formatRelativeDay(target)}</span>
+                        <span className="text-sm text-stone-600">
+                          {formatRelativeDay(target, undefined, locale)}
+                        </span>
                       </>
                     ) : (
-                      <span className="text-stone-500 italic">No further dose planned</span>
+                      <span className="text-stone-500 italic">{v.noFurtherDose}</span>
                     )}
                   </td>
                   <td className="hidden px-3 py-3 xl:table-cell">
-                    {vaccination.veterinarian ?? (
-                      <span className="text-stone-500 italic">{NOT_RECORDED}</span>
+                    {vaccination.veterinarian ? (
+                      tc(vaccination.veterinarian)
+                    ) : (
+                      <span className="text-stone-500 italic">{t.medical.notRecorded}</span>
                     )}
                   </td>
                   <td className="px-5 py-3">
@@ -194,6 +197,17 @@ function VaccinationCards({
   showHorse: boolean;
   compact?: boolean;
 }) {
+  const { t, tc, locale } = useI18n();
+  const v = t.medical.vaccinations;
+
+  /** "12 Oct 2026 · In 3 weeks" — the date that matters, and how far away it is. */
+  function targetLabel(vaccination: Vaccination): string | null {
+    const date = vaccinationTargetDate(vaccination);
+    return date
+      ? `${formatRecordDate(date, locale)} · ${formatRelativeDay(date, undefined, locale)}`
+      : null;
+  }
+
   return (
     <ul className={compact ? 'space-y-3' : 'grid gap-3 sm:grid-cols-2 lg:hidden'}>
       {vaccinations.map((vaccination) => {
@@ -204,9 +218,9 @@ function VaccinationCards({
           <li key={vaccination.id} className="rounded-card border border-stone-200 bg-white p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <h4 className="font-medium break-words">{vaccination.vaccineName}</h4>
+                <h4 className="font-medium break-words">{tc(vaccination.vaccineName)}</h4>
                 {showHorse ? (
-                  <p className="text-sm text-stone-600">{vaccination.horseName}</p>
+                  <p className="text-sm text-stone-600">{tc(vaccination.horseName)}</p>
                 ) : null}
               </div>
               <MedicalStatusBadge status={status} />
@@ -214,18 +228,18 @@ function VaccinationCards({
 
             <dl className="mt-3 space-y-1 border-t border-stone-200 pt-3 text-sm">
               <div className="flex flex-wrap gap-x-2">
-                <dt className="text-stone-600">Last given</dt>
+                <dt className="text-stone-600">{v.lastGiven}</dt>
                 <dd className="font-medium">
                   {vaccination.administeredOn
-                    ? formatRecordDate(vaccination.administeredOn)
-                    : NOT_RECORDED}
+                    ? formatRecordDate(vaccination.administeredOn, locale)
+                    : t.medical.notRecorded}
                 </dd>
               </div>
               <div className="flex flex-wrap gap-x-2">
                 <dt className="text-stone-600">
-                  {status === 'scheduled' ? 'Booked for' : 'Next due'}
+                  {status === 'scheduled' ? v.bookedFor : v.nextDue}
                 </dt>
-                <dd className="font-medium">{label ?? 'No further dose planned'}</dd>
+                <dd className="font-medium">{label ?? v.noFurtherDose}</dd>
               </div>
             </dl>
           </li>

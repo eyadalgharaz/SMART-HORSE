@@ -4,10 +4,11 @@ import { useId, useState } from 'react';
 import { ListFilter, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
+import { sortByLabel, useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { activeTaskFilterCount, hasActiveTaskFilters } from '../format';
 import type { HorseOption, TaskCategory, TaskFilters, TaskPriority, TaskStatus } from '../types';
-import { taskCategoryOptions, taskPriorityOptions, taskStatusOptions } from '../vocabulary';
+import { taskCategoryValues, taskPriorityValues, taskStatusValues } from '../vocabulary';
 
 interface TaskFilterBarProps {
   filters: TaskFilters;
@@ -38,25 +39,27 @@ export function TaskFilterBar({
   const panelId = useId();
   const count = activeTaskFilterCount(filters);
   const showReset = hasActiveTaskFilters(filters);
+  const { t, tc, locale } = useI18n();
+  const f = t.tasks.filters;
 
   return (
     <div className="space-y-3">
       <div className="flex gap-2">
         <div className="relative min-w-0 flex-1">
           <Search
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-stone-500"
+            className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-stone-500"
             aria-hidden="true"
           />
           <label htmlFor={searchId} className="sr-only">
-            Search tasks
+            {f.searchLabel}
           </label>
           <input
             id={searchId}
             type="search"
             value={filters.search}
-            placeholder="Search by title, horse, assignee or notes"
+            placeholder={f.searchPlaceholder}
             onChange={(event) => onChange({ ...filters, search: event.target.value })}
-            className="sh-field h-10 pl-9"
+            className="sh-field h-10 ps-9"
           />
         </div>
 
@@ -68,7 +71,7 @@ export function TaskFilterBar({
           onClick={() => setOpen((value) => !value)}
         >
           <ListFilter className="size-4" aria-hidden="true" />
-          Filters
+          {t.common.filters}
           {count > 0 ? <span className="text-stone-600">({count})</span> : null}
         </Button>
       </div>
@@ -81,7 +84,7 @@ export function TaskFilterBar({
         )}
       >
         <label className="sr-only" htmlFor={`${panelId}-horse`}>
-          Filter by horse
+          {t.common.filterByHorse}
         </label>
         <Select
           id={`${panelId}-horse`}
@@ -89,16 +92,16 @@ export function TaskFilterBar({
           value={filters.horseId ?? ANY}
           onChange={(event) => onChange({ ...filters, horseId: event.target.value || null })}
         >
-          <option value={ANY}>All horses</option>
-          {horses.map((horse) => (
+          <option value={ANY}>{t.common.allHorses}</option>
+          {sortByLabel(horses, (horse) => tc(horse.name), locale).map((horse) => (
             <option key={horse.id} value={horse.id}>
-              {horse.name}
+              {tc(horse.name)}
             </option>
           ))}
         </Select>
 
         <label className="sr-only" htmlFor={`${panelId}-assignee`}>
-          Filter by assignee
+          {f.filterByAssignee}
         </label>
         <Select
           id={`${panelId}-assignee`}
@@ -106,16 +109,16 @@ export function TaskFilterBar({
           value={filters.assigneeId ?? ANY}
           onChange={(event) => onChange({ ...filters, assigneeId: event.target.value || null })}
         >
-          <option value={ANY}>All assignees</option>
-          {assignees.map((assignee) => (
+          <option value={ANY}>{f.allAssignees}</option>
+          {sortByLabel(assignees, (assignee) => tc(assignee.name), locale).map((assignee) => (
             <option key={assignee.id} value={assignee.id}>
-              {assignee.name}
+              {tc(assignee.name)}
             </option>
           ))}
         </Select>
 
         <label className="sr-only" htmlFor={`${panelId}-category`}>
-          Filter by category
+          {f.filterByCategory}
         </label>
         <Select
           id={`${panelId}-category`}
@@ -125,16 +128,16 @@ export function TaskFilterBar({
             onChange({ ...filters, category: (event.target.value || null) as TaskCategory | null })
           }
         >
-          <option value={ANY}>All categories</option>
-          {taskCategoryOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
+          <option value={ANY}>{f.allCategories}</option>
+          {taskCategoryValues.map((value) => (
+            <option key={value} value={value}>
+              {t.tasks.categories[value]}
             </option>
           ))}
         </Select>
 
         <label className="sr-only" htmlFor={`${panelId}-priority`}>
-          Filter by priority
+          {f.filterByPriority}
         </label>
         <Select
           id={`${panelId}-priority`}
@@ -144,16 +147,16 @@ export function TaskFilterBar({
             onChange({ ...filters, priority: (event.target.value || null) as TaskPriority | null })
           }
         >
-          <option value={ANY}>All priorities</option>
-          {taskPriorityOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
+          <option value={ANY}>{f.allPriorities}</option>
+          {taskPriorityValues.map((value) => (
+            <option key={value} value={value}>
+              {t.tasks.priorities[value]}
             </option>
           ))}
         </Select>
 
         <label className="sr-only" htmlFor={`${panelId}-status`}>
-          Filter by status
+          {t.common.filterByStatus}
         </label>
         <Select
           id={`${panelId}-status`}
@@ -163,16 +166,16 @@ export function TaskFilterBar({
             onChange({ ...filters, status: (event.target.value || null) as TaskStatus | null })
           }
         >
-          <option value={ANY}>All statuses</option>
-          {taskStatusOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
+          <option value={ANY}>{t.common.allStatuses}</option>
+          {taskStatusValues.map((value) => (
+            <option key={value} value={value}>
+              {t.tasks.statuses[value]}
             </option>
           ))}
         </Select>
 
         <label className="sr-only" htmlFor={`${panelId}-recurring`}>
-          Filter by recurring
+          {f.filterByRecurring}
         </label>
         <Select
           id={`${panelId}-recurring`}
@@ -185,15 +188,15 @@ export function TaskFilterBar({
             })
           }
         >
-          <option value={ANY}>Recurring or one-time</option>
-          <option value="recurring">Recurring only</option>
-          <option value="one-time">One-time only</option>
+          <option value={ANY}>{f.recurringOrOneTime}</option>
+          <option value="recurring">{f.recurringOnly}</option>
+          <option value="one-time">{f.oneTimeOnly}</option>
         </Select>
 
         {showReset ? (
           <Button variant="ghost" size="sm" onClick={onReset} className="justify-self-start">
             <X className="size-4" aria-hidden="true" />
-            Clear filters
+            {t.common.clearFilters}
           </Button>
         ) : null}
       </div>

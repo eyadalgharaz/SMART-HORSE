@@ -7,10 +7,10 @@ import { Button, ButtonLink } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
+import { useI18n } from '@/i18n';
 import { formatDueDate, formatDueLabel, formatDueRelative } from '../format';
 import { useSetTaskStatus } from '../hooks/use-set-task-status';
 import { useTask } from '../hooks/use-task';
-import { recurrenceFrequencyLabels } from '../vocabulary';
 import { savedUrl, TasksSavedMessage } from './saved-message';
 import { TaskDetailSkeleton } from './task-skeletons';
 import {
@@ -28,13 +28,14 @@ import {
  */
 
 function BackLink() {
+  const { t } = useI18n();
   return (
     <Link
       href="/tasks"
-      className="hover:text-ink -ml-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-sm font-medium text-stone-600"
+      className="hover:text-ink -ms-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-sm font-medium text-stone-600"
     >
       <ChevronLeft className="size-4 rtl:rotate-180" aria-hidden="true" />
-      Back to tasks
+      {t.tasks.backToTasks}
     </Link>
   );
 }
@@ -52,6 +53,8 @@ export function TaskDetailPage({ taskId }: { taskId: string }) {
   const router = useRouter();
   const { task, isPending, notFound, isError, isRefetching, refetch } = useTask(taskId);
   const { mutate: setStatus, isPending: changingStatus } = useSetTaskStatus();
+  const { t, tc, locale } = useI18n();
+  const d = t.tasks.detail;
 
   if (isPending) {
     return (
@@ -67,9 +70,9 @@ export function TaskDetailPage({ taskId }: { taskId: string }) {
       <div className="space-y-4">
         <BackLink />
         <EmptyState
-          title="Task not found"
-          description="This task doesn't exist, or it has been removed."
-          action={<ButtonLink href="/tasks">Back to tasks</ButtonLink>}
+          title={d.notFoundTitle}
+          description={d.notFoundDescription}
+          action={<ButtonLink href="/tasks">{t.tasks.backToTasks}</ButtonLink>}
         />
       </div>
     );
@@ -80,11 +83,11 @@ export function TaskDetailPage({ taskId }: { taskId: string }) {
       <div className="space-y-4">
         <BackLink />
         <ErrorState
-          title="We couldn't load this task"
-          description="Something went wrong while loading the task. Check your connection and try again."
+          title={d.loadErrorTitle}
+          description={d.loadErrorDescription}
           action={
             <Button variant="secondary" onClick={() => void refetch()} loading={isRefetching}>
-              Try again
+              {t.common.tryAgain}
             </Button>
           }
         />
@@ -111,8 +114,10 @@ export function TaskDetailPage({ taskId }: { taskId: string }) {
           <div className="flex min-w-0 items-start gap-3">
             <TaskCategoryIcon category={task.category} />
             <div className="min-w-0">
-              <h2 className="text-xl font-semibold break-words sm:text-2xl">{task.title}</h2>
-              {task.description ? <p className="mt-1 text-stone-600">{task.description}</p> : null}
+              <h2 className="text-xl font-semibold break-words sm:text-2xl">{tc(task.title)}</h2>
+              {task.description ? (
+                <p className="mt-1 text-stone-600">{tc(task.description)}</p>
+              ) : null}
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <TaskStatusBadge status={task.status} />
                 <TaskPriorityBadge priority={task.priority} />
@@ -124,7 +129,7 @@ export function TaskDetailPage({ taskId }: { taskId: string }) {
           <div className="flex flex-wrap gap-2">
             <ButtonLink href={`/tasks/${task.id}/edit`} variant="secondary">
               <Pencil className="size-4" aria-hidden="true" />
-              Edit
+              {t.common.edit}
             </ButtonLink>
 
             {isOpen ? (
@@ -135,18 +140,18 @@ export function TaskDetailPage({ taskId }: { taskId: string }) {
                     loading={changingStatus}
                     onClick={() => setStatus({ id: taskId, status: 'in-progress' })}
                   >
-                    Start
+                    {t.tasks.start}
                   </Button>
                 ) : null}
                 <Button loading={changingStatus} onClick={complete}>
-                  Mark complete
+                  {d.markComplete}
                 </Button>
                 <Button
                   variant="ghost"
                   loading={changingStatus}
                   onClick={() => setStatus({ id: taskId, status: 'cancelled' })}
                 >
-                  Cancel task
+                  {d.cancelTask}
                 </Button>
               </>
             ) : null}
@@ -155,53 +160,56 @@ export function TaskDetailPage({ taskId }: { taskId: string }) {
       </div>
 
       <Card>
-        <CardHeader title="Details" headingLevel={3} />
+        <CardHeader title={d.details} headingLevel={3} />
         <CardBody className="grid gap-3 sm:grid-cols-3">
           <Fact
-            label="Horse"
+            label={d.horse}
             value={
               task.horseId ? (
                 <Link
                   href={`/horses/${task.horseId}`}
                   className="hover:text-pasture-600 hover:underline"
                 >
-                  {task.horseName}
+                  {task.horseName ? tc(task.horseName) : null}
                 </Link>
               ) : (
-                'Farm-wide'
+                t.tasks.farmWide
               )
             }
           />
-          <Fact label="Assignee" value={task.assigneeName ?? 'Unassigned'} />
           <Fact
-            label="Due"
+            label={d.assignee}
+            value={task.assigneeName ? tc(task.assigneeName) : t.common.unassigned}
+          />
+          <Fact
+            label={d.due}
             value={
               task.dueAt ? (
                 <>
-                  {formatDueLabel(task.dueAt)}
+                  {formatDueLabel(task.dueAt, undefined, locale)}
                   <span className="mt-0.5 block text-sm font-normal text-stone-600">
-                    {formatDueRelative(task.dueAt)}
+                    {formatDueRelative(task.dueAt, undefined, locale)}
                   </span>
                 </>
               ) : (
-                'No due date'
+                t.tasks.noDueDate
               )
             }
           />
-          <Fact label="Repeats" value={recurrenceFrequencyLabels[task.recurrence.frequency]} />
-          <Fact label="Created" value={formatDueDate(task.createdAt)} />
+          <Fact label={d.repeats} value={t.tasks.recurrence[task.recurrence.frequency]} />
+          <Fact label={d.created} value={formatDueDate(task.createdAt, locale)} />
           <Fact
-            label="Completed"
-            value={task.completedAt ? formatDueDate(task.completedAt) : 'Not completed'}
+            label={d.completed}
+            value={task.completedAt ? formatDueDate(task.completedAt, locale) : d.notCompleted}
           />
         </CardBody>
       </Card>
 
       {task.notes ? (
         <Card>
-          <CardHeader title="Notes" headingLevel={3} />
+          <CardHeader title={d.notes} headingLevel={3} />
           <CardBody>
-            <p className="text-sm whitespace-pre-wrap text-stone-700">{task.notes}</p>
+            <p className="text-sm whitespace-pre-wrap text-stone-700">{tc(task.notes)}</p>
           </CardBody>
         </Card>
       ) : null}

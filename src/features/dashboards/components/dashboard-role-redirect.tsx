@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Spinner } from '@/components/ui/spinner';
 import { useAuth } from '@/features/auth/auth-provider';
+import { useTranslations } from '@/i18n';
 import { roleDashboardPath } from '../routes';
 
 /**
@@ -18,6 +19,7 @@ import { roleDashboardPath } from '../routes';
 export function DashboardRoleRedirect() {
   const { user } = useAuth();
   const router = useRouter();
+  const t = useTranslations();
 
   useEffect(() => {
     const target = roleDashboardPath(user?.farmRole ?? 'FarmOwner');
@@ -30,7 +32,7 @@ export function DashboardRoleRedirect() {
 
   return (
     <div className="flex justify-center py-16">
-      <Spinner label="Loading your dashboard" />
+      <Spinner label={t.common.loadingDashboard} />
     </div>
   );
 }

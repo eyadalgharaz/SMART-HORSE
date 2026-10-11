@@ -1,5 +1,8 @@
+'use client';
+
 import Link from 'next/link';
 import { Pencil } from 'lucide-react';
+import { useI18n } from '@/i18n';
 import { formatDistance, formatDuration, formatSessionDate, formatSpeed } from '../format';
 import type { TrainingSession } from '../types';
 import { TrainingSessionStatusBadge, TrainingTypeLabel } from './training-status-badge';
@@ -20,39 +23,42 @@ function MetricCell({ value }: { value: string | null }) {
 }
 
 export function TrainingSessionList({ sessions }: { sessions: TrainingSession[] }) {
+  const { t, tc, locale } = useI18n();
+  const l = t.training.list;
+
   return (
     <>
       <div className="rounded-card hidden overflow-hidden border border-stone-200 bg-white lg:block">
-        <table className="w-full border-collapse text-left">
-          <caption className="sr-only">Training sessions</caption>
+        <table className="w-full border-collapse text-start">
+          <caption className="sr-only">{l.caption}</caption>
           <thead>
             <tr className="border-b border-stone-200 text-sm text-stone-600">
               <th scope="col" className="px-5 py-3 font-medium">
-                Horse
+                {l.horse}
               </th>
               <th scope="col" className="px-3 py-3 font-medium">
-                Type
+                {l.type}
               </th>
               <th scope="col" className="hidden px-3 py-3 font-medium xl:table-cell">
-                Trainer
+                {l.trainer}
               </th>
               <th scope="col" className="px-3 py-3 font-medium">
-                Date
+                {l.date}
               </th>
               <th scope="col" className="px-3 py-3 font-medium">
-                Duration
+                {l.duration}
               </th>
               <th scope="col" className="hidden px-3 py-3 font-medium xl:table-cell">
-                Distance
+                {l.distance}
               </th>
               <th scope="col" className="hidden px-3 py-3 font-medium xl:table-cell">
-                Avg speed
+                {l.avgSpeed}
               </th>
               <th scope="col" className="px-3 py-3 font-medium">
-                Status
+                {l.status}
               </th>
-              <th scope="col" className="px-5 py-3 text-right font-medium">
-                <span className="sr-only">Actions</span>
+              <th scope="col" className="px-5 py-3 text-end font-medium">
+                <span className="sr-only">{t.common.actions}</span>
               </th>
             </tr>
           </thead>
@@ -64,37 +70,39 @@ export function TrainingSessionList({ sessions }: { sessions: TrainingSession[] 
                     href={`/training/horses/${session.horseId}`}
                     className="hover:text-pasture-600 block font-medium hover:underline"
                   >
-                    {session.horseName}
+                    {tc(session.horseName)}
                   </Link>
-                  <span className="mt-0.5 block text-sm text-stone-600">{session.title}</span>
+                  <span className="mt-0.5 block text-sm text-stone-600">{tc(session.title)}</span>
                 </th>
                 <td className="px-3 py-3 align-top">
                   <TrainingTypeLabel type={session.trainingType} />
                 </td>
-                <td className="hidden px-3 py-3 align-top xl:table-cell">{session.trainerName}</td>
-                <td className="px-3 py-3 align-top whitespace-nowrap">
-                  <time dateTime={session.date}>{formatSessionDate(session.date)}</time>
+                <td className="hidden px-3 py-3 align-top xl:table-cell">
+                  {tc(session.trainerName)}
                 </td>
                 <td className="px-3 py-3 align-top whitespace-nowrap">
-                  {formatDuration(session.durationMinutes)}
+                  <time dateTime={session.date}>{formatSessionDate(session.date, locale)}</time>
+                </td>
+                <td className="px-3 py-3 align-top whitespace-nowrap">
+                  {formatDuration(session.durationMinutes, locale)}
                 </td>
                 <td className="hidden px-3 py-3 align-top xl:table-cell">
-                  <MetricCell value={formatDistance(session.distanceKm)} />
+                  <MetricCell value={formatDistance(session.distanceKm, locale)} />
                 </td>
                 <td className="hidden px-3 py-3 align-top xl:table-cell">
-                  <MetricCell value={formatSpeed(session.avgSpeedKmh)} />
+                  <MetricCell value={formatSpeed(session.avgSpeedKmh, locale)} />
                 </td>
                 <td className="px-3 py-3 align-top">
                   <TrainingSessionStatusBadge status={session.status} />
                 </td>
-                <td className="px-5 py-3 text-right align-top">
+                <td className="px-5 py-3 text-end align-top">
                   <Link
                     href={`/training/horses/${session.horseId}/edit/${session.id}`}
-                    aria-label={`Edit ${session.title} for ${session.horseName}`}
+                    aria-label={l.editLabel(tc(session.title), tc(session.horseName))}
                     className="text-pasture-500 hover:text-pasture-700 -my-1 inline-flex items-center gap-1 rounded-md px-1.5 py-1.5 text-sm font-medium hover:underline"
                   >
                     <Pencil className="size-4" aria-hidden="true" />
-                    Edit
+                    {l.edit}
                   </Link>
                 </td>
               </tr>
@@ -105,8 +113,8 @@ export function TrainingSessionList({ sessions }: { sessions: TrainingSession[] 
 
       <ul className="grid gap-3 sm:grid-cols-2 lg:hidden">
         {sessions.map((session) => {
-          const distance = formatDistance(session.distanceKm);
-          const speed = formatSpeed(session.avgSpeedKmh);
+          const distance = formatDistance(session.distanceKm, locale);
+          const speed = formatSpeed(session.avgSpeedKmh, locale);
           return (
             <li key={session.id}>
               <div className="rounded-card border border-stone-200 bg-white p-4">
@@ -116,9 +124,9 @@ export function TrainingSessionList({ sessions }: { sessions: TrainingSession[] 
                       href={`/training/horses/${session.horseId}`}
                       className="hover:text-pasture-600 block truncate font-medium hover:underline"
                     >
-                      {session.horseName}
+                      {tc(session.horseName)}
                     </Link>
-                    <span className="block text-sm text-stone-600">{session.title}</span>
+                    <span className="block text-sm text-stone-600">{tc(session.title)}</span>
                   </div>
                   <TrainingSessionStatusBadge status={session.status} />
                 </div>
@@ -128,9 +136,9 @@ export function TrainingSessionList({ sessions }: { sessions: TrainingSession[] 
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-stone-200 pt-3 text-sm text-stone-600">
-                  <time dateTime={session.date}>{formatSessionDate(session.date)}</time>
-                  <span>{formatDuration(session.durationMinutes)}</span>
-                  <span className="truncate">{session.trainerName}</span>
+                  <time dateTime={session.date}>{formatSessionDate(session.date, locale)}</time>
+                  <span>{formatDuration(session.durationMinutes, locale)}</span>
+                  <span className="truncate">{tc(session.trainerName)}</span>
                 </div>
 
                 {distance || speed ? (
@@ -143,11 +151,11 @@ export function TrainingSessionList({ sessions }: { sessions: TrainingSession[] 
                 <div className="mt-3 border-t border-stone-200 pt-3">
                   <Link
                     href={`/training/horses/${session.horseId}/edit/${session.id}`}
-                    aria-label={`Edit ${session.title} for ${session.horseName}`}
+                    aria-label={l.editLabel(tc(session.title), tc(session.horseName))}
                     className="text-pasture-500 hover:text-pasture-700 inline-flex min-h-9 items-center gap-1 text-sm font-medium hover:underline"
                   >
                     <Pencil className="size-4" aria-hidden="true" />
-                    Edit session
+                    {l.editSession}
                   </Link>
                 </div>
               </div>

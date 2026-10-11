@@ -7,7 +7,7 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useGenderLabel, useHorseName, useTranslations } from '@/i18n';
+import { useGenderLabel, useHorseName, useI18n, useTranslations } from '@/i18n';
 import { formatAge, formatBirthDate } from '../format';
 import { useHorse } from '../use-horse';
 import { Detail, DetailList } from './detail-list';
@@ -29,9 +29,10 @@ function BackLink() {
 }
 
 function ProfileSkeleton() {
+  const t = useTranslations();
   return (
     <div role="status" aria-busy="true" className="space-y-4">
-      <span className="sr-only">Loading horse</span>
+      <span className="sr-only">{t.common.loadingHorse}</span>
       <div className="rounded-card border border-stone-200 bg-white p-4 sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <Skeleton className="rounded-card size-24 sm:size-28" />
@@ -73,6 +74,7 @@ export function HorseProfilePage({ horseId }: { horseId: string }) {
   // used once `horse` is confirmed loaded, below.
   const displayName = useHorseName(horse?.name ?? '');
   const genderLabel = useGenderLabel(horse?.gender ?? 'mare');
+  const { t, tc, locale } = useI18n();
 
   if (isPending) {
     return (
@@ -88,9 +90,9 @@ export function HorseProfilePage({ horseId }: { horseId: string }) {
       <div className="space-y-4">
         <BackLink />
         <EmptyState
-          title="Horse not found"
-          description="This horse doesn't exist, or it is no longer part of your farm."
-          action={<ButtonLink href="/horses">Back to horses</ButtonLink>}
+          title={t.common.horseNotFoundTitle}
+          description={t.common.horseNotFoundDescription}
+          action={<ButtonLink href="/horses">{t.horses.backToHorses}</ButtonLink>}
         />
       </div>
     );
@@ -101,11 +103,11 @@ export function HorseProfilePage({ horseId }: { horseId: string }) {
       <div className="space-y-4">
         <BackLink />
         <ErrorState
-          title="We couldn't load this horse"
-          description="Something went wrong while loading the record. Check your connection and try again."
+          title={t.common.horseLoadErrorTitle}
+          description={t.common.recordLoadErrorDescription}
           action={
             <Button variant="secondary" onClick={() => void refetch()} loading={isRefetching}>
-              Try again
+              {t.common.tryAgain}
             </Button>
           }
         />
@@ -121,41 +123,58 @@ export function HorseProfilePage({ horseId }: { horseId: string }) {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader title="Basic information" headingLevel={3} />
+          <CardHeader title={t.horses.sections.basicInfo} headingLevel={3} />
           <CardBody>
             <DetailList>
-              <Detail label="Name" value={displayName} />
-              <Detail label="Breed" value={horse.breed} />
-              <Detail label="Gender" value={genderLabel} />
-              <Detail label="Color" value={horse.color} />
-              <Detail label="Birth date">
-                <time dateTime={horse.birthDate}>{formatBirthDate(horse.birthDate)}</time>
+              <Detail label={t.horses.fields.name} value={displayName} />
+              <Detail label={t.horses.fields.breed} value={tc(horse.breed)} />
+              <Detail label={t.horses.fields.gender} value={genderLabel} />
+              <Detail label={t.horses.fields.color} value={tc(horse.color)} />
+              <Detail label={t.horses.fields.birthDate}>
+                <time dateTime={horse.birthDate}>{formatBirthDate(horse.birthDate, locale)}</time>
               </Detail>
-              <Detail label="Age" value={formatAge(horse.birthDate)} />
+              <Detail
+                label={t.horses.fields.age}
+                value={formatAge(horse.birthDate, undefined, locale)}
+              />
             </DetailList>
           </CardBody>
         </Card>
 
         <Card>
-          <CardHeader title="Identification" headingLevel={3} />
+          <CardHeader title={t.horses.sections.identification} headingLevel={3} />
           <CardBody>
             <DetailList>
-              <Detail label="Registration number" value={horse.registrationNumber} />
-              <Detail label="Microchip number" value={horse.microchipNumber} />
+              <Detail label={t.horses.fields.registrationNumber}>
+                {horse.registrationNumber ? (
+                  <span dir="ltr">{horse.registrationNumber}</span>
+                ) : undefined}
+              </Detail>
+              <Detail label={t.horses.fields.microchipNumber}>
+                {horse.microchipNumber ? (
+                  <span dir="ltr" className="tabular-nums">
+                    {horse.microchipNumber}
+                  </span>
+                ) : undefined}
+              </Detail>
             </DetailList>
           </CardBody>
         </Card>
 
         <Card>
-          <CardHeader title="Ownership" headingLevel={3} />
+          <CardHeader title={t.horses.sections.ownership} headingLevel={3} />
           <CardBody className="space-y-4">
             <DetailList>
-              <Detail label="Current owner" value={horse.owner?.name ?? null} />
-              <Detail label="Status" value={horse.owner ? 'Owned' : 'Unassigned'} />
+              <Detail
+                label={t.horses.fields.currentOwner}
+                value={horse.owner ? tc(horse.owner.name) : null}
+              />
+              <Detail
+                label={t.horses.fields.status}
+                value={horse.owner ? t.horses.owned : t.horses.unassigned}
+              />
             </DetailList>
-            <p className="text-sm text-stone-600">
-              Transfers and ownership history arrive with the Ownership module.
-            </p>
+            <p className="text-sm text-stone-600">{t.horses.ownershipNote}</p>
           </CardBody>
         </Card>
 

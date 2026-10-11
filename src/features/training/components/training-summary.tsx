@@ -1,6 +1,9 @@
+'use client';
+
 import type { LucideIcon } from 'lucide-react';
 import { CalendarCheck2, ClipboardList, Fence, ListChecks } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { useTranslations } from '@/i18n';
 import type { TrainingOverviewSummary } from '../format';
 
 /**
@@ -41,35 +44,37 @@ function SummaryTile({
 }
 
 export function TrainingSummary({ summary }: { summary: TrainingOverviewSummary }) {
+  const t = useTranslations();
+  const s = t.training.summary;
   return (
     <section aria-labelledby="training-summary-heading">
       <h2 id="training-summary-heading" className="sr-only">
-        Training summary
+        {s.heading}
       </h2>
       <ul className="grid gap-4 min-[360px]:grid-cols-2 sm:gap-5 xl:grid-cols-4">
         <SummaryTile
-          label="Active training programs"
+          label={s.activePrograms}
           value={summary.activePrograms}
           icon={ClipboardList}
-          detail={summary.activePrograms > 0 ? 'Currently in progress' : 'None active right now'}
+          detail={summary.activePrograms > 0 ? s.currentlyInProgress : s.noneActiveRightNow}
         />
         <SummaryTile
-          label="Sessions this week"
+          label={s.sessionsThisWeek}
           value={summary.sessionsThisWeek}
           icon={CalendarCheck2}
-          detail={summary.sessionsThisWeek > 0 ? 'Scheduled or completed' : 'Nothing this week'}
+          detail={summary.sessionsThisWeek > 0 ? s.scheduledOrCompleted : s.nothingThisWeek}
         />
         <SummaryTile
-          label="Completed sessions"
+          label={s.completedSessions}
           value={summary.completedSessions}
           icon={ListChecks}
-          detail="All time"
+          detail={s.allTime}
         />
         <SummaryTile
-          label="Horses in training"
+          label={s.horsesInTraining}
           value={summary.horsesInTraining}
           icon={Fence}
-          detail="Active in the last week"
+          detail={s.activeLastWeek}
         />
       </ul>
     </section>

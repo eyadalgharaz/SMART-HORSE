@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
+import { useI18n } from '@/i18n';
 import { useRemoveTeamMember } from '../hooks/use-team-mutations';
 import type { TeamMember } from '../types';
 import { savedUrl } from './saved-message';
@@ -25,6 +26,7 @@ export function RemoveMemberDialog({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const { mutateAsync, isPending } = useRemoveTeamMember();
+  const { t, tc, tm } = useI18n();
 
   if (!member) return null;
 
@@ -36,7 +38,7 @@ export function RemoveMemberDialog({
       onClose();
       router.push(savedUrl('/settings/team', 'removed'));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not remove this member.');
+      setError(err instanceof Error ? err.message : t.settings.remove.error);
     }
   }
 
@@ -44,20 +46,20 @@ export function RemoveMemberDialog({
     <Modal
       open={Boolean(member)}
       onClose={onClose}
-      title="Remove team member?"
-      description={`This will remove ${member.fullName} from this farm.`}
+      title={t.settings.remove.title}
+      description={t.settings.remove.description(tc(member.fullName))}
       footer={
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            {t.common.cancel}
           </Button>
           <Button variant="danger" loading={isPending} onClick={() => void handleRemove()}>
-            Remove member
+            {t.settings.remove.confirm}
           </Button>
         </div>
       }
     >
-      {error ? <Alert tone="error">{error}</Alert> : null}
+      {error ? <Alert tone="error">{tm(error)}</Alert> : null}
     </Modal>
   );
 }

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Building2, ChevronRight, ShieldCheck, User, Users } from 'lucide-react';
 import { PageHeader } from '@/components/layout/page-header';
-import { useTranslations } from '@/i18n';
+import { useTranslations, type Dictionary } from '@/i18n';
 
 /**
  * Container for /settings: a landing page that names the four things a
@@ -12,32 +12,16 @@ import { useTranslations } from '@/i18n';
  * it to hide.
  */
 
-const SECTIONS = [
-  {
-    href: '/settings/farm',
-    icon: Building2,
-    title: 'Farm Profile',
-    description: 'Update your farm information, contact details and profile.',
-  },
-  {
-    href: '/settings/team',
-    icon: Users,
-    title: 'Team Members',
-    description: 'Manage the people who have access to this farm.',
-  },
-  {
-    href: '/settings/roles',
-    icon: ShieldCheck,
-    title: 'Roles & Permissions',
-    description: 'Review roles and the access associated with them.',
-  },
-  {
-    href: '/settings/account',
-    icon: User,
-    title: 'Account',
-    description: 'Manage your personal profile and account preferences.',
-  },
-] as const;
+const SECTIONS: {
+  href: string;
+  icon: typeof Building2;
+  key: keyof Dictionary['settings']['sections'];
+}[] = [
+  { href: '/settings/farm', icon: Building2, key: 'farm' },
+  { href: '/settings/team', icon: Users, key: 'team' },
+  { href: '/settings/roles', icon: ShieldCheck, key: 'roles' },
+  { href: '/settings/account', icon: User, key: 'account' },
+];
 
 export function SettingsOverviewPage() {
   const t = useTranslations();
@@ -48,6 +32,7 @@ export function SettingsOverviewPage() {
       <ul className="grid gap-4 sm:grid-cols-2">
         {SECTIONS.map((section) => {
           const Icon = section.icon;
+          const copy = t.settings.sections[section.key];
           return (
             <li key={section.href}>
               <Link
@@ -58,8 +43,8 @@ export function SettingsOverviewPage() {
                   <Icon className="size-5" aria-hidden="true" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-semibold">{section.title}</span>
-                  <span className="mt-1 block text-sm text-stone-600">{section.description}</span>
+                  <span className="block font-semibold">{copy.title}</span>
+                  <span className="mt-1 block text-sm text-stone-600">{copy.description}</span>
                 </span>
                 <ChevronRight
                   className="mt-1 size-4 shrink-0 text-stone-400 group-hover:text-stone-600 rtl:rotate-180"

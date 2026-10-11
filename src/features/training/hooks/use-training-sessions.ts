@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useI18n } from '@/i18n/use-i18n';
 import { filterTrainingSessions, horsesOf, trainersOf } from '../format';
 import { trainingService } from '../training-service';
 import { trainingKeys } from '../query-keys';
@@ -19,8 +20,9 @@ export function useTrainingSessions(filters: TrainingSessionFilters) {
     queryFn: () => trainingService.listSessions(),
   });
 
+  const { tc } = useI18n();
   const all = useMemo(() => query.data ?? [], [query.data]);
-  const sessions = useMemo(() => filterTrainingSessions(all, filters), [all, filters]);
+  const sessions = useMemo(() => filterTrainingSessions(all, filters, tc), [all, filters, tc]);
   const horses = useMemo(() => horsesOf(all), [all]);
   const trainers = useMemo(() => trainersOf(all), [all]);
 

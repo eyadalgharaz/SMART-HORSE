@@ -10,3 +10,6 @@ export {
   useStatusOptions,
 } from './horses';
 export type { Dictionary } from './dictionaries/en';
+export { useI18n } from './use-i18n';
+export { useTabArrowKeys } from './use-tab-arrow-keys';
+export { sortByLabel } from './format';

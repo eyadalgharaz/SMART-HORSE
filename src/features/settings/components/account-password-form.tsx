@@ -8,6 +8,7 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { FormField } from '@/components/ui/form-field';
 import { PasswordInput } from '@/components/ui/password-input';
 import { useFormErrors } from '@/hooks/use-form-errors';
+import { useI18n } from '@/i18n';
 import { useChangePassword } from '../hooks/use-change-password';
 import { changePasswordSchema, toChangePasswordInput } from '../schemas';
 import { savedUrl } from './saved-message';
@@ -24,6 +25,8 @@ export function AccountPasswordForm() {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const { mutateAsync } = useChangePassword();
+  const { t, tm } = useI18n();
+  const a = t.settings.account;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -46,7 +49,7 @@ export function AccountPasswordForm() {
       form.reset();
       router.push(savedUrl('/settings/account', 'password'));
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Could not update your password.');
+      setFormError(error instanceof Error ? error.message : a.passwordError);
     } finally {
       setSubmitting(false);
     }
@@ -54,33 +57,33 @@ export function AccountPasswordForm() {
 
   return (
     <Card>
-      <CardHeader title="Password" headingLevel={3} />
+      <CardHeader title={a.password} headingLevel={3} />
       <CardBody>
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
-          {formError ? <Alert tone="error">{formError}</Alert> : null}
+          {formError ? <Alert tone="error">{tm(formError)}</Alert> : null}
 
-          <FormField label="Current password" error={errors.currentPassword} required>
+          <FormField label={a.currentPassword} error={errors.currentPassword} required>
             <PasswordInput name="currentPassword" autoComplete="current-password" />
           </FormField>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField
-              label="New password"
+              label={a.newPassword}
               error={errors.newPassword}
               required
-              hint="At least 8 characters, with a letter and a number."
+              hint={a.newPasswordHint}
             >
               <PasswordInput name="newPassword" autoComplete="new-password" />
             </FormField>
 
-            <FormField label="Confirm new password" error={errors.confirmPassword} required>
+            <FormField label={a.confirmPassword} error={errors.confirmPassword} required>
               <PasswordInput name="confirmPassword" autoComplete="new-password" />
             </FormField>
           </div>
 
           <div className="flex justify-end">
             <Button type="submit" loading={submitting}>
-              {submitting ? 'Updating password' : 'Update password'}
+              {submitting ? a.updatingPassword : a.updatePassword}
             </Button>
           </div>
         </form>

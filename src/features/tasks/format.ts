@@ -1,5 +1,8 @@
 import { calendarDayDifference } from '@/features/dashboard/format';
-import { toDateInputValue } from '@/features/horses/format';
+import { matchesAnyField, toDateInputValue } from '@/features/horses/format';
+import { getDictionary } from '@/i18n/dictionaries';
+import { formatClockTime, formatDate } from '@/i18n/format';
+import type { Locale } from '@/i18n/locale';
 import type { Assignee, HorseOption, Task, TaskFilters } from './types';
 import type { DueState } from './vocabulary';
 
@@ -43,42 +46,48 @@ export function isOverdue(
 /* Dates                                                                */
 /* ------------------------------------------------------------------ */
 
-/** "18 Sep 2026" */
-export function formatDueDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
+/** "18 Sep 2026" ("18 سبتمبر 2026" in Arabic) */
+export function formatDueDate(iso: string, locale: Locale = 'en'): string {
+  return formatDate(iso, locale);
 }
 
-/** "9:30 AM" */
-export function formatDueTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit' });
+/** "9:30" ("9:30 ص" in Arabic) */
+export function formatDueTime(iso: string, locale: Locale = 'en'): string {
+  return formatClockTime(iso, locale);
 }
 
-/** "Today, 9:30 AM", "Tomorrow, 9:30 AM", "Yesterday, 9:30 AM", or "18 Sep 2026, 9:30 AM". */
-export function formatDueLabel(iso: string, reference: Date = new Date()): string {
+/** "Today, 9:30", "Tomorrow, 9:30", "Yesterday, 9:30", or "18 Sep 2026, 9:30". */
+export function formatDueLabel(
+  iso: string,
+  reference: Date = new Date(),
+  locale: Locale = 'en',
+): string {
+  const time = getDictionary(locale).time;
   const offset = calendarDayDifference(new Date(iso), reference);
   const day =
     offset === 0
-      ? 'Today'
+      ? time.today
       : offset === 1
-        ? 'Tomorrow'
+        ? time.tomorrow
         : offset === -1
-          ? 'Yesterday'
-          : formatDueDate(iso);
-  return `${day}, ${formatDueTime(iso)}`;
+          ? time.yesterday
+          : formatDueDate(iso, locale);
+  return time.dateWithTime(day, formatDueTime(iso, locale));
 }
 
 /** "3 days overdue", "Due today", "Due tomorrow", "Due in 4 days". */
-export function formatDueRelative(iso: string, reference: Date = new Date()): string {
+export function formatDueRelative(
+  iso: string,
+  reference: Date = new Date(),
+  locale: Locale = 'en',
+): string {
+  const due = getDictionary(locale).tasks.due;
   const offset = calendarDayDifference(new Date(iso), reference);
-  if (offset === 0) return 'Due today';
-  if (offset === 1) return 'Due tomorrow';
-  if (offset === -1) return '1 day overdue';
-  if (offset < 0) return `${Math.abs(offset)} days overdue`;
-  return `Due in ${offset} days`;
+  if (offset === 0) return due.dueToday;
+  if (offset === 1) return due.dueTomorrow;
+  if (offset === -1) return due.oneDayOverdue;
+  if (offset < 0) return due.daysOverdue(Math.abs(offset));
+  return due.dueInDays(offset);
 }
 
 /* ------------------------------------------------------------------ */
@@ -139,11 +148,11 @@ export function assigneesOf(tasks: Task[]): Pick<Assignee, 'id' | 'name'>[] {
 /* Filtering                                                            */
 /* ------------------------------------------------------------------ */
 
-function matchesSearch(task: Task, search: string): boolean {
-  const term = search.trim().toLowerCase();
-  if (!term) return true;
-  return [task.title, task.horseName, task.assigneeName, task.description, task.notes].some(
-    (field) => field?.toLowerCase().includes(term),
+function matchesSearch(task: Task, search: string, localize?: (text: string) => string): boolean {
+  return matchesAnyField(
+    [task.title, task.horseName, task.assigneeName, task.description, task.notes],
+    search,
+    localize,
   );
 }
 
@@ -152,10 +161,14 @@ function matchesSearch(task: Task, search: string): boolean {
  * of each other. When the API arrives this rule moves into the query string;
  * the hook keeps the same signature, so no component changes.
  */
-export function filterTasks(tasks: Task[], filters: TaskFilters): Task[] {
+export function filterTasks(
+  tasks: Task[],
+  filters: TaskFilters,
+  localize?: (text: string) => string,
+): Task[] {
   return tasks.filter(
     (task) =>
-      matchesSearch(task, filters.search) &&
+      matchesSearch(task, filters.search, localize) &&
       (filters.horseId === null || task.horseId === filters.horseId) &&
       (filters.assigneeId === null || task.assigneeId === filters.assigneeId) &&
       (filters.category === null || task.category === filters.category) &&
@@ -190,9 +203,8 @@ export function activeTaskFilterCount(filters: TaskFilters): number {
 }
 
 /** "50 tasks", "1 task", or "Showing 8 of 50 tasks" while filters are on. */
-export function formatTaskCount(shown: number, total: number): string {
-  const noun = total === 1 ? 'task' : 'tasks';
-  return shown === total ? `${total} ${noun}` : `Showing ${shown} of ${total} ${noun}`;
+export function formatTaskCount(shown: number, total: number, locale: Locale = 'en'): string {
+  return getDictionary(locale).tasks.count(shown, total);
 }
 
 /* ------------------------------------------------------------------ */

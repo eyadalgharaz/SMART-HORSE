@@ -52,6 +52,10 @@ Primary V1 client for SmartHorse, per Architecture v1.0 §2 and Implementation P
   Training, Tasks, Notifications, Settings/Team/Roles) should follow next —
   see the limitations note in "Internationalization" below for what's not
   covered yet.
+- **Arabic localization (complete)** — Health, Training, Tasks,
+  Notifications and every Settings page are now fully bilingual too, mock
+  content, validation messages, toasts, charts and accessibility labels
+  included. See "Internationalization (Arabic / RTL)".
 
 Every other business module route is still a placeholder. There is no backend,
 no API client and no business logic in this package.
@@ -166,11 +170,15 @@ every authenticated and authentication page. Switching language:
 
 - Sets `<html dir lang>` at the root, putting the **entire app** into RTL —
   not a per-page toggle.
-- Persists to `localStorage` (`smarthorse.locale`) and is restored on the next
-  load/refresh. Because this reads `localStorage`, the very first paint before
-  hydration is always English/LTR even if Arabic was saved — an accepted,
-  documented trade-off of a frontend-only, backend-free language preference
-  (see §13 of the phase brief this was built against).
+- Takes effect immediately, with no page reload, and persists to
+  `localStorage` (`smarthorse.locale`) across navigation and refresh.
+- A tiny inline script in `app/layout.tsx` applies the saved `lang`/`dir`
+  before first paint, so a returning Arabic user never sees the layout flip
+  from LTR to RTL. Text strings still hydrate from the English server render
+  for a moment; that brief English flash is the remaining trade-off of a
+  backend-free, `localStorage`-based preference.
+- The browser tab title follows the active language
+  (`components/layout/document-title.tsx`).
 - Requires no backend, same as every other preference in this app today.
 
 **Architecture** (`src/i18n/`):
@@ -204,62 +212,45 @@ from the correct edge in both directions, the active-nav-item indicator uses
 uses `end-0` instead of `right-0`, and every back/forward chevron icon found
 across the app mirrors with `rtl:rotate-180`.
 
-**What is localized today:** the application shell (sidebar, topbar, the
-language switcher itself, the account menu), all four authentication screens
-including the role-selector cards, role labels/descriptions everywhere they
-display (topbar, Account Settings, Invite Member, Team filters, team member
-detail, role badges), the top-of-page title/description/error-state for
-every main feature route (Horses, Health, Training, Tasks, Notifications,
-Settings) plus the three placeholder role dashboards, and — in full,
-including mock data — the Dashboard and the Horses module (see below).
+**Coverage: every route is localized**, in both languages: auth screens, shell,
+all role dashboards, Horses, Health (Medical), Training, Tasks, Notifications
+and every Settings page (Account, Farm, Team, Roles & Permissions), including
+their forms, tables, filters, tabs, empty/error/loading states, toasts and
+success messages, badges, chart labels, `aria-label`s and placeholders.
 
-**The horse-name map is centralized and shared app-wide**
-(`src/i18n/horse-names.ts`, `useHorseName()`): the full 24-horse demo roster
-gets a genuinely Arabic display name (e.g. "Luna" → "ليلى" — a real Arabic
-name, not a transliteration), not just the handful the Dashboard and Horses
-have in common. The underlying `Horse.id` and the canonical English
-`Horse.name` a form edits are never touched — only the read-only display
-passes through the map. Gender and status vocabulary follow the identical
-pattern already proven for farm roles (`src/i18n/horses.ts`).
+How the rest fits together (all under `src/i18n/`):
 
-**The Dashboard (`/dashboard/farm-owner` and `/dashboard/stable-manager`) and
-the Horses module (`/horses` and its profile/edit pages) are localized
-completely, mock data included** — nothing in either is stored as display
-text. `UpcomingTask` carries a `type` (e.g. `'vaccination'`), never a title
-string, and its localized title is derived at render time via
-`taskTitle(type, t)`; `DashboardNotification` carries a `category` (+
-`taskType` for task notifications) and a `horseName`, never a title/message
-string; weekday and short-date labels go through `Intl` with the active
-locale, with the Latin numbering system forced in Arabic too
-(`ar-u-nu-latn`) so figures stay quickly readable. See
-`features/dashboard/format.ts`, `features/dashboard/types.ts`, and the
-Horses components under `features/horses/components/`.
+- **Module dictionaries** — `dictionaries/modules/{medical,training,tasks,
+notifications,settings}.{en,ar}.ts` are merged into the main dictionary;
+  `tests/i18n/dictionary-shape.test.ts` still guarantees `en`/`ar` key parity.
+- **Pluralization & interpolation** — dictionary entries can be functions
+  (`count(n)`, `belongsTo(name)`); Arabic uses `arabicPlural()` (built on
+  `Intl.PluralRules('ar')`) for zero/one/two/few/many forms.
+- **Dates & numbers** — `format.ts` (`formatDate`, `formatClockTime`,
+  `formatDecimal`…) and `relative.ts` ("in 3 days", "2 weeks ago"). English
+  output is byte-for-byte what it was (`en-GB`); Arabic uses `ar-u-nu-latn`
+  (Arabic month names, Latin digits). Each feature's `format.ts` takes an
+  optional `locale` that defaults to `'en'`.
+- **Demo content** — the mock data stays English (it is the "database"); its
+  Arabic display text lives in `content/ar/*.ts` and is applied at render time
+  via `useI18n().tc`. IDs, enums and stored values never change. Edit forms use
+  `restoreSource()` so an untouched, translated field saves its original stored
+  value. `tests/i18n/content-coverage.test.ts` fails if a mock string gains no
+  Arabic translation.
+- **System messages** — Zod/service error strings are translated at display
+  time (`content/ar-messages.ts`, `useI18n().tm`, used by `useFormErrors`), so
+  schemas and services are unchanged.
+- **Search** in Arabic matches both the Arabic display text and the stored
+  English values.
+- **RTL details** — logical properties throughout (`ms-/ps-/start-/text-start`,
+  `border-s`), arrow-key tab navigation reverses in RTL (`useTabArrowKeys`),
+  only directional icons mirror (logos and symbolic icons do not), and email,
+  phone and URL inputs stay LTR.
 
-**What is intentionally not localized yet** — a scoped limitation, not an
-oversight, and the next phase's starting point: Medical, Training, Tasks,
-Notifications, Settings (Team/Roles/Farm/Account), and their forms — these
-modules already resolve a horse's name through the same `Horse` records
-`useHorseName()` now covers, so adopting it there is the same mechanical,
-low-risk change demonstrated in the Horses module, not new architecture.
-Also still English: trainer/doctor/assignee names (free-text flavor fields,
-not drawn from a role-bearing account); medical record notes, training
-session results, and task descriptions (free-text content, would need the
-same "store a category, derive the text" restructuring already done for
-Dashboard notifications); form field labels and content inside Add/Edit
-Horse, Medical record, Training session and Task forms; Settings'
-Team/Roles/Farm/Account sub-page content beyond role labels; the Roles &
-Permissions matrix (area names and access levels are sourced from the mock
-service, which this phase
-left untouched rather than making it locale-aware, matching the "don't modify
-mock service contracts unless required" guidance it was built under); Zod
-validation error messages; the Notifications list page and Settings' "time
-ago" wording (both still call the original English-only `formatRelativeTime`
-from `features/dashboard/format.ts`, kept unchanged on purpose so this work
-didn't touch two modules outside the Dashboard — see the comment at the top
-of that file); and other feature modules' table/row content generally.
-Extending coverage to any of these is additive — add the English/Arabic pair
-to the relevant dictionary section and call `useTranslations()` where the
-string is rendered, the same pattern used everywhere above.
+**Not translated, by design:** anything a user types (horse notes, names,
+emails), the `SmartHorse` brand, and the English name derived from a login
+email. Native date pickers follow the browser's own locale. Arabic uses the
+system Arabic font stack (no web font was added).
 
 ## Dashboard redesign
 

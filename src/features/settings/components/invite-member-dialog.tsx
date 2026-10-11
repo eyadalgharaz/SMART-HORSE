@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useFormErrors } from '@/hooks/use-form-errors';
 import { useInviteTeamMember } from '../hooks/use-team-mutations';
 import { inviteMemberSchema, toInviteInput } from '../schemas';
-import { useRoleOptions } from '@/i18n';
+import { useI18n, useRoleOptions } from '@/i18n';
 import { savedUrl } from './saved-message';
 
 /**
@@ -29,6 +29,9 @@ export function InviteMemberDialog({ open, onClose }: { open: boolean; onClose: 
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const { mutateAsync } = useInviteTeamMember();
+  const { t, tm } = useI18n();
+  const inv = t.settings.invite;
+  const f = t.settings.fields;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -51,7 +54,7 @@ export function InviteMemberDialog({ open, onClose }: { open: boolean; onClose: 
       onClose();
       router.push(savedUrl('/settings/team', 'invited'));
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Could not create this invitation.');
+      setFormError(error instanceof Error ? error.message : inv.saveError);
     } finally {
       setSubmitting(false);
     }
@@ -61,31 +64,31 @@ export function InviteMemberDialog({ open, onClose }: { open: boolean; onClose: 
     <Modal
       open={open}
       onClose={onClose}
-      title="Invite team member"
-      description="This is a mock invitation — no email is sent."
+      title={inv.title}
+      description={inv.description}
       footer={
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            {t.common.cancel}
           </Button>
           <Button type="submit" form="invite-member-form" loading={submitting}>
-            {submitting ? 'Creating invitation' : 'Send invitation'}
+            {submitting ? inv.submitting : inv.submit}
           </Button>
         </div>
       }
     >
       <form id="invite-member-form" onSubmit={handleSubmit} noValidate className="space-y-4">
-        {formError ? <Alert tone="error">{formError}</Alert> : null}
+        {formError ? <Alert tone="error">{tm(formError)}</Alert> : null}
 
-        <FormField label="Full name" error={errors.fullName} required>
+        <FormField label={f.fullName} error={errors.fullName} required>
           <Input name="fullName" maxLength={80} />
         </FormField>
 
-        <FormField label="Email" error={errors.email} required>
+        <FormField label={f.email} error={errors.email} required>
           <Input type="email" name="email" />
         </FormField>
 
-        <FormField label="Role" error={errors.role} required>
+        <FormField label={f.role} error={errors.role} required>
           <Select name="role" defaultValue="Worker">
             {roleOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -95,11 +98,7 @@ export function InviteMemberDialog({ open, onClose }: { open: boolean; onClose: 
           </Select>
         </FormField>
 
-        <FormField
-          label="Message"
-          error={errors.message}
-          hint="Optional — included alongside the invitation."
-        >
+        <FormField label={inv.message} error={errors.message} hint={inv.messageHint}>
           <Textarea name="message" rows={3} maxLength={400} />
         </FormField>
       </form>

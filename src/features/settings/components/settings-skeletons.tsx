@@ -1,9 +1,13 @@
+'use client';
+
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslations } from '@/i18n';
 
 export function FarmProfileSkeleton() {
+  const t = useTranslations();
   return (
     <div role="status" aria-busy="true" className="space-y-4">
-      <span className="sr-only">Loading farm profile</span>
+      <span className="sr-only">{t.settings.farm.loading}</span>
       {Array.from({ length: 3 }, (_, index) => (
         <div key={index} className="rounded-card border border-stone-200 bg-white p-5">
           <Skeleton className="h-5 w-40" />
@@ -19,9 +23,10 @@ export function FarmProfileSkeleton() {
 }
 
 export function TeamListSkeleton() {
+  const t = useTranslations();
   return (
     <div role="status" aria-busy="true">
-      <span className="sr-only">Loading team members</span>
+      <span className="sr-only">{t.settings.team.loading}</span>
 
       <div className="rounded-card hidden divide-y divide-stone-200 border border-stone-200 bg-white lg:block">
         {Array.from({ length: 6 }, (_, index) => (
@@ -54,9 +59,10 @@ export function TeamListSkeleton() {
 }
 
 export function RolesSkeleton() {
+  const t = useTranslations();
   return (
     <ul role="status" aria-busy="true" className="grid gap-4 sm:grid-cols-2">
-      <span className="sr-only">Loading roles</span>
+      <span className="sr-only">{t.settings.roles.loading}</span>
       {Array.from({ length: 4 }, (_, index) => (
         <li key={index} className="rounded-card border border-stone-200 bg-white p-4 sm:p-5">
           <Skeleton className="h-5 w-32" />
@@ -69,9 +75,10 @@ export function RolesSkeleton() {
 }
 
 export function AccountSkeleton() {
+  const t = useTranslations();
   return (
     <div role="status" aria-busy="true" className="space-y-4">
-      <span className="sr-only">Loading account</span>
+      <span className="sr-only">{t.settings.account.loading}</span>
       {Array.from({ length: 2 }, (_, index) => (
         <div key={index} className="rounded-card border border-stone-200 bg-white p-5">
           <Skeleton className="h-5 w-40" />

@@ -29,7 +29,7 @@ export function FormField({ label, error, hint, children, required }: FormFieldP
       <label htmlFor={id} className="text-ink-soft block text-sm font-medium">
         {label}
         {required ? (
-          <span className="ml-0.5 text-stone-500" aria-hidden="true">
+          <span className="ms-0.5 text-stone-500" aria-hidden="true">
             *
           </span>
         ) : null}

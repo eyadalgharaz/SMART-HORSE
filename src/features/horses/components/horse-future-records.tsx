@@ -1,7 +1,10 @@
+'use client';
+
 import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { ChevronRight, ClipboardList, Dumbbell, FolderOpen, Stethoscope } from 'lucide-react';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
+import { useTranslations, type Dictionary } from '@/i18n';
 
 /**
  * The profile is designed to become a horse's whole record, so it says which
@@ -13,18 +16,17 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card';
  * and nothing to click, because a number that is not real or a button that
  * goes nowhere costs more trust than an honest placeholder saves.
  */
-const planned: { label: string; icon: LucideIcon }[] = [
-  { label: 'Files and documents', icon: FolderOpen },
+const planned: { label: keyof Dictionary['horses']['records']; icon: LucideIcon }[] = [
+  { label: 'files', icon: FolderOpen },
 ];
 
 export function HorseFutureRecords({ horseId }: { horseId: string }) {
+  const t = useTranslations();
+  const records = t.horses.records;
+
   return (
     <Card>
-      <CardHeader
-        title="Records"
-        description="These attach to the horse as each module is delivered."
-        headingLevel={3}
-      />
+      <CardHeader title={records.title} description={records.description} headingLevel={3} />
       <CardBody>
         <ul className="grid gap-2 sm:grid-cols-2">
           <li>
@@ -33,7 +35,7 @@ export function HorseFutureRecords({ horseId }: { horseId: string }) {
               className="hover:border-pasture-500 hover:bg-pasture-50 flex items-center gap-2.5 rounded-md border border-stone-200 px-3 py-2.5 text-sm"
             >
               <Stethoscope className="text-pasture-600 size-4 shrink-0" aria-hidden="true" />
-              <span className="text-ink-soft font-medium">Health records</span>
+              <span className="text-ink-soft font-medium">{records.health}</span>
               <ChevronRight
                 className="ms-auto size-4 shrink-0 text-stone-500 rtl:rotate-180"
                 aria-hidden="true"
@@ -47,7 +49,7 @@ export function HorseFutureRecords({ horseId }: { horseId: string }) {
               className="hover:border-pasture-500 hover:bg-pasture-50 flex items-center gap-2.5 rounded-md border border-stone-200 px-3 py-2.5 text-sm"
             >
               <Dumbbell className="text-pasture-600 size-4 shrink-0" aria-hidden="true" />
-              <span className="text-ink-soft font-medium">Training records</span>
+              <span className="text-ink-soft font-medium">{records.training}</span>
               <ChevronRight
                 className="ms-auto size-4 shrink-0 text-stone-500 rtl:rotate-180"
                 aria-hidden="true"
@@ -61,7 +63,7 @@ export function HorseFutureRecords({ horseId }: { horseId: string }) {
               className="hover:border-pasture-500 hover:bg-pasture-50 flex items-center gap-2.5 rounded-md border border-stone-200 px-3 py-2.5 text-sm"
             >
               <ClipboardList className="text-pasture-600 size-4 shrink-0" aria-hidden="true" />
-              <span className="text-ink-soft font-medium">Tasks</span>
+              <span className="text-ink-soft font-medium">{records.tasks}</span>
               <ChevronRight
                 className="ms-auto size-4 shrink-0 text-stone-500 rtl:rotate-180"
                 aria-hidden="true"
@@ -75,8 +77,8 @@ export function HorseFutureRecords({ horseId }: { horseId: string }) {
               className="flex items-center gap-2.5 rounded-md border border-dashed border-stone-300 px-3 py-2.5 text-sm text-stone-600"
             >
               <Icon className="size-4 shrink-0 text-stone-500" aria-hidden="true" />
-              <span className="text-ink-soft font-medium">{label}</span>
-              <span className="ml-auto text-xs whitespace-nowrap">Not yet available</span>
+              <span className="text-ink-soft font-medium">{records[label]}</span>
+              <span className="ms-auto text-xs whitespace-nowrap">{records.notYetAvailable}</span>
             </li>
           ))}
         </ul>

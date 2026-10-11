@@ -1,5 +1,9 @@
-import { calendarDayDifference, pluralize } from '@/features/dashboard/format';
-import { toDateInputValue } from '@/features/horses/format';
+import { calendarDayDifference } from '@/features/dashboard/format';
+import { matchesAnyField, toDateInputValue } from '@/features/horses/format';
+import { getDictionary } from '@/i18n/dictionaries';
+import { formatClockTime, formatDate, formatDayMonth } from '@/i18n/format';
+import type { Locale } from '@/i18n/locale';
+import { relativeDateLabel } from '@/i18n/relative';
 import type {
   HorseOption,
   Trainer,
@@ -25,63 +29,64 @@ export function dayOffset(iso: string, reference: Date = new Date()): number {
   return calendarDayDifference(new Date(iso), reference);
 }
 
-/** "18 Sep 2026" */
-export function formatSessionDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
+/** "18 Sep 2026" ("18 سبتمبر 2026" in Arabic) */
+export function formatSessionDate(iso: string, locale: Locale = 'en'): string {
+  return formatDate(iso, locale);
 }
 
 /** "18 Sep" — the year is carried by the timeline's year heading. */
-export function formatShortDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+export function formatShortDate(iso: string, locale: Locale = 'en'): string {
+  return formatDayMonth(iso, locale);
 }
 
-/** "9:30 AM" */
-export function formatSessionTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit' });
+/** "9:30" ("9:30 ص" in Arabic) */
+export function formatSessionTime(iso: string, locale: Locale = 'en'): string {
+  return formatClockTime(iso, locale);
 }
 
-/** "18 Sep 2026, 9:30 AM" */
-export function formatSessionDateTime(iso: string): string {
-  return `${formatSessionDate(iso)}, ${formatSessionTime(iso)}`;
+/** "18 Sep 2026, 9:30" */
+export function formatSessionDateTime(iso: string, locale: Locale = 'en'): string {
+  return getDictionary(locale).time.dateWithTime(
+    formatSessionDate(iso, locale),
+    formatSessionTime(iso, locale),
+  );
 }
 
 /** "Today", "Tomorrow", "Yesterday", otherwise "18 Sep 2026". */
-export function formatDateLabel(iso: string, reference: Date = new Date()): string {
-  const difference = dayOffset(iso, reference);
-  if (difference === 0) return 'Today';
-  if (difference === 1) return 'Tomorrow';
-  if (difference === -1) return 'Yesterday';
-  return formatSessionDate(iso);
+export function formatDateLabel(
+  iso: string,
+  reference: Date = new Date(),
+  locale: Locale = 'en',
+): string {
+  return relativeDateLabel(iso, reference, locale);
 }
 
-/** "42 min", "1 hr 15 min", "2 hr" */
-export function formatDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes} min`;
+/** "42 min", "1 hr 15 min", "2 hr" ("45 دقيقة", "ساعة واحدة و15 دقيقة" in Arabic) */
+export function formatDuration(minutes: number, locale: Locale = 'en'): string {
+  const units = getDictionary(locale).training.units;
+  if (minutes < 60) return units.minutes(minutes);
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
-  return rest === 0 ? `${hours} hr` : `${hours} hr ${rest} min`;
+  return rest === 0 ? units.hours(hours) : units.hoursMinutes(hours, rest);
 }
 
-/** "8.4 km" */
-export function formatDistance(km: number | null): string | null {
+/** "8.4 km" ("8.4 كم") */
+export function formatDistance(km: number | null, locale: Locale = 'en'): string | null {
   if (km === null) return null;
-  return `${km.toFixed(1)} km`;
+  return getDictionary(locale).training.units.km(km.toFixed(1));
 }
 
-/** "12.0 km/h" */
-export function formatSpeed(kmh: number | null): string | null {
+/** "12.0 km/h" ("12.0 كم/س") */
+export function formatSpeed(kmh: number | null, locale: Locale = 'en'): string | null {
   if (kmh === null) return null;
-  return `${kmh.toFixed(1)} km/h`;
+  return getDictionary(locale).training.units.kmh(kmh.toFixed(1));
 }
 
 /** "Willow, Duke +1" — a short list that never grows past `max` names. */
-export function formatNameList(names: string[], max = 2): string {
-  if (names.length <= max) return names.join(', ');
-  return `${names.slice(0, max).join(', ')} +${names.length - max}`;
+export function formatNameList(names: string[], max = 2, locale: Locale = 'en'): string {
+  const separator = locale === 'ar' ? '، ' : ', ';
+  if (names.length <= max) return names.join(separator);
+  return `${names.slice(0, max).join(separator)} +${names.length - max}`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -134,12 +139,16 @@ export function groupSessionsByYear(
   return groups;
 }
 
-function matchesSearch(session: TrainingSession, search: string): boolean {
-  const term = search.trim().toLowerCase();
-  if (!term) return true;
-  return [session.horseName, session.trainerName, session.title, session.notes]
-    .concat(session.trainerNotes ?? '')
-    .some((field) => field?.toLowerCase().includes(term));
+function matchesSearch(
+  session: TrainingSession,
+  search: string,
+  localize?: (text: string) => string,
+): boolean {
+  return matchesAnyField(
+    [session.horseName, session.trainerName, session.title, session.notes, session.trainerNotes],
+    search,
+    localize,
+  );
 }
 
 function withinDateRange(session: TrainingSession, from: string, to: string): boolean {
@@ -155,10 +164,11 @@ function withinDateRange(session: TrainingSession, from: string, to: string): bo
 export function filterTrainingSessions(
   sessions: TrainingSession[],
   filters: TrainingSessionFilters,
+  localize?: (text: string) => string,
 ): TrainingSession[] {
   return sessions.filter(
     (session) =>
-      matchesSearch(session, filters.search) &&
+      matchesSearch(session, filters.search, localize) &&
       (filters.horseId === null || session.horseId === filters.horseId) &&
       (filters.trainerId === null || session.trainerId === filters.trainerId) &&
       (filters.trainingType === null || session.trainingType === filters.trainingType) &&
@@ -188,9 +198,8 @@ export function activeTrainingFilterCount(filters: TrainingSessionFilters): numb
 }
 
 /** "40 sessions", "1 session", or "Showing 8 of 40 sessions" while filters are on. */
-export function formatSessionCount(shown: number, total: number): string {
-  const noun = pluralize(total, 'session');
-  return shown === total ? `${total} ${noun}` : `Showing ${shown} of ${total} ${noun}`;
+export function formatSessionCount(shown: number, total: number, locale: Locale = 'en'): string {
+  return getDictionary(locale).training.count(shown, total);
 }
 
 /* ------------------------------------------------------------------ */

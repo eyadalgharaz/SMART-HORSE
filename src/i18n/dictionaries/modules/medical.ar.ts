@@ -1,0 +1,252 @@
+import { arabicPlural } from '../../format';
+import type { medicalEn } from './medical.en';
+
+const records = (n: number) =>
+  arabicPlural(n, {
+    zero: 'لا توجد سجلات',
+    one: 'سجل واحد',
+    two: 'سجلان',
+    few: '{n} سجلات',
+    many: '{n} سجلًا',
+    other: '{n} سجل',
+  });
+const ofRecords = (n: number) =>
+  arabicPlural(n, {
+    one: 'سجل واحد',
+    two: 'سجلين',
+    few: '{n} سجلات',
+    many: '{n} سجلًا',
+    other: '{n} سجل',
+  });
+const vaccinations = (n: number) =>
+  arabicPlural(n, {
+    zero: 'لا توجد تطعيمات',
+    one: 'تطعيم واحد',
+    two: 'تطعيمان',
+    few: '{n} تطعيمات',
+    many: '{n} تطعيمًا',
+    other: '{n} تطعيم',
+  });
+const ofVaccinations = (n: number) =>
+  arabicPlural(n, {
+    one: 'تطعيم واحد',
+    two: 'تطعيمين',
+    few: '{n} تطعيمات',
+    many: '{n} تطعيمًا',
+    other: '{n} تطعيم',
+  });
+
+/** الصحة / السجلات الطبية — العربية. */
+export const medicalAr: typeof medicalEn = {
+  recordTypes: {
+    checkup: 'فحص دوري',
+    vaccination: 'تطعيم',
+    diagnosis: 'تشخيص',
+    treatment: 'علاج',
+    medication: 'دواء',
+    injury: 'إصابة',
+    surgery: 'جراحة',
+    other: 'أخرى',
+  },
+  statuses: {
+    healthy: 'بصحة جيدة',
+    monitoring: 'تحت الملاحظة',
+    'needs-attention': 'يحتاج إلى عناية',
+    'under-treatment': 'تحت العلاج',
+    recovering: 'في مرحلة التعافي',
+    'up-to-date': 'محدَّث',
+    'due-soon': 'مستحق قريبًا',
+    overdue: 'متأخر',
+    scheduled: 'مجدول',
+    completed: 'مكتمل',
+    ongoing: 'مستمر',
+    'follow-up-required': 'يحتاج إلى متابعة',
+  },
+  eventKinds: {
+    'vaccination-due': 'تطعيم',
+    'follow-up': 'زيارة متابعة',
+    checkup: 'فحص مجدول',
+    'medication-review': 'مراجعة الدواء',
+    visit: 'زيارة مجدولة',
+  },
+  attachmentTypes: {
+    'x-ray': 'صورة أشعة',
+    'lab-result': 'نتيجة مختبر',
+    document: 'مستند',
+    image: 'صورة',
+  },
+  notRecorded: 'غير مسجَّل',
+  backToHealth: 'العودة إلى الصحة',
+  backToMedicalHistory: 'العودة إلى السجل الطبي',
+  overview: {
+    tabsLabel: 'أقسام الصحة',
+    tabs: { records: 'السجلات', vaccinations: 'التطعيمات', upcoming: 'القادم' },
+    emptyTitle: 'لا توجد سجلات طبية بعد',
+    emptyDescription: 'افتح ملف أحد الخيول وأضف أول سجل طبي له لتبدأ بناء تاريخه الصحي.',
+    noMatchTitle: 'لا توجد سجلات مطابقة لبحثك',
+    noMatchDescription: 'جرّب كلمة بحث مختلفة، أو وسّع نطاق الفلاتر والتواريخ.',
+    loadingVaccinations: 'جارٍ تحميل التطعيمات',
+    vaccinationsEmptyTitle: 'لا توجد تطعيمات',
+    vaccinationsEmptyDescription: 'تظهر التطعيمات هنا بمجرد إضافة سجل تطعيم لأحد الخيول.',
+    vaccinationsNoMatchTitle: 'لا توجد تطعيمات مطابقة لهذه الفلاتر',
+    vaccinationsNoMatchDescription: 'جرّب حصانًا آخر أو حالة أخرى.',
+    upcomingTitle: 'المواعيد الطبية القادمة',
+    upcomingDescription: 'الزيارات المحجوزة والمتابعات والجرعات التي يقترب موعدها.',
+    upcomingEmpty: 'لا توجد مواعيد طبية قادمة. لا شيء مستحق أو محجوز حاليًا.',
+  },
+  counts: {
+    records: (shown: number, total: number) =>
+      shown === total ? records(total) : `عرض ${shown} من أصل ${ofRecords(total)}`,
+    vaccinations: (shown: number, total: number) =>
+      shown === total ? vaccinations(total) : `عرض ${shown} من أصل ${ofVaccinations(total)}`,
+  },
+  summary: {
+    heading: 'الملخص الصحي',
+    attention: 'خيول تحتاج إلى عناية',
+    noneRightNow: 'لا يوجد حاليًا',
+    vaccinationsDue: 'تطعيمات مستحقة',
+    overdueCount: (n: number) => `${n} متأخرة`,
+    next: (date: string) => `التالي: ${date}`,
+    allUpToDate: 'جميعها محدَّثة',
+    upcomingVisits: 'زيارات بيطرية قادمة',
+    noneScheduled: 'لا توجد زيارات مجدولة',
+    recentRecords: 'سجلات آخر 30 يومًا',
+    latest: (horse: string, date: string) => `الأحدث: ${horse}، ${date}`,
+    nothingRecorded: 'لم يُسجَّل شيء بعد',
+  },
+  filters: {
+    searchLabel: 'البحث في السجلات الطبية',
+    searchPlaceholder: 'ابحث باسم الحصان أو العنوان أو التشخيص أو الطبيب أو الدواء',
+    filterByType: 'التصفية حسب نوع السجل',
+    allTypes: 'كل أنواع السجلات',
+    vaccinationsByHorse: 'تصفية التطعيمات حسب الحصان',
+    vaccinationsByStatus: 'تصفية التطعيمات حسب الحالة',
+  },
+  list: {
+    caption: 'السجلات الطبية',
+    record: 'السجل',
+    type: 'النوع',
+    noVet: 'دون طبيب',
+    attachmentsSr: (n: number) =>
+      arabicPlural(n, { one: 'مرفق', two: 'مرفقان', few: 'مرفقات', many: 'مرفقًا', other: 'مرفق' }),
+  },
+  recordSummary: {
+    nextDoseDue: (vaccine: string, date: string) => `${vaccine} · الجرعة التالية في ${date}`,
+    medication: (medication: string) => `الدواء: ${medication}`,
+  },
+  vaccinations: {
+    caption: 'التطعيمات',
+    vaccine: 'اللقاح',
+    lastGiven: 'آخر جرعة',
+    nextDue: 'الجرعة التالية',
+    bookedFor: 'محجوز في',
+    noFurtherDose: 'لا توجد جرعة أخرى مخطط لها',
+  },
+  detail: {
+    editRecord: 'تعديل السجل',
+    clinical: 'المعلومات السريرية',
+    followUp: 'المتابعة',
+    noFollowUp: 'لم تُخطَّط متابعة لهذا السجل.',
+    attachments: 'المرفقات',
+    noAttachments: 'لا توجد مرفقات في هذا السجل.',
+  },
+  fields: {
+    date: 'التاريخ',
+    horse: 'الحصان',
+    veterinarian: 'الطبيب البيطري',
+    recordType: 'نوع السجل',
+    status: 'الحالة',
+    title: 'العنوان',
+    diagnosis: 'التشخيص',
+    medication: 'الدواء',
+    treatment: 'العلاج',
+    vaccine: 'اللقاح',
+    nextDoseDue: 'موعد الجرعة التالية',
+    notes: 'ملاحظات',
+    followUpDate: 'تاريخ المتابعة',
+    followUpNotes: 'ملاحظات المتابعة',
+  },
+  attachments: {
+    attachFiles: 'إرفاق ملفات',
+    help: (max: string) =>
+      `صور أشعة أو نتائج مختبر أو صور أو مستندات، بحد أقصى ${max} لكل ملف. تُعرض على هذا الجهاز فقط حاليًا — لا يتم رفع أي ملف.`,
+    noneYet: 'لم تُرفق أي ملفات بعد.',
+    fileTypeFor: (name: string) => `نوع الملف ${name}`,
+    remove: (name: string) => `إزالة ${name}`,
+    tooLarge: (names: string, count: number, max: string) =>
+      count === 1
+        ? `حجم الملف ${names} يتجاوز ${max}، لذا لم يتم إرفاقه.`
+        : `حجم الملفات ${names} يتجاوز ${max}، لذا لم يتم إرفاقها.`,
+  },
+  horsePage: {
+    viewHorseProfile: 'عرض ملف الحصان',
+    addRecord: 'إضافة سجل',
+    historyErrorTitle: 'تعذّر تحميل السجل الطبي لهذا الحصان',
+    historyErrorDescription: 'حدث خطأ أثناء تحميل البيانات الصحية. تحقق من اتصالك وحاول مرة أخرى.',
+    healthSummary: 'الملخص الصحي',
+    lastVetVisit: 'آخر زيارة بيطرية',
+    noneRecorded: 'لا توجد زيارات مسجلة',
+    nextVaccination: 'التطعيم التالي',
+    noneDue: 'لا يوجد تطعيم مستحق',
+    openFollowUps: 'المتابعات المفتوحة',
+    nextFollowUp: (relative: string) => `التالية: ${relative}`,
+    nothingOutstanding: 'لا توجد متابعات معلّقة',
+    timelineTitle: 'التسلسل الزمني الطبي',
+    timelineDescription: 'جميع سجلات هذا الحصان، الأحدث أولًا. اختر سجلًا لعرض تفاصيله كاملة.',
+    noRecordsTitle: 'لا توجد سجلات طبية',
+    noRecordsDescription: (name: string) =>
+      `لم يُسجَّل أي شيء لـ${name} بعد. أضف أول سجل لتبدأ تاريخه الطبي.`,
+    upcomingTitle: 'المواعيد الطبية القادمة',
+    noUpcoming: (name: string) => `لا توجد مواعيد طبية قادمة لـ${name}.`,
+    vaccinationsTitle: 'التطعيمات',
+    noVaccinations: (name: string) => `لا توجد تطعيمات مسجلة لـ${name}.`,
+  },
+  healthCard: {
+    title: 'الحالة الصحية',
+    setWhen: (relative: string) => `آخر تحديث: ${relative}`,
+    none: 'لم تُسجَّل حالة صحية لهذا الحصان بعد.',
+  },
+  timeline: {
+    followUp: (relative: string) => `المتابعة: ${relative}`,
+  },
+  form: {
+    basicInfo: 'المعلومات الأساسية',
+    belongsTo: (name: string) => `هذا السجل خاص بـ${name}.`,
+    dateHint: 'اختر تاريخًا مستقبليًا فقط للزيارات المجدولة.',
+    vetHint: 'اتركه فارغًا إذا لم يحضر طبيب بيطري.',
+    vetPlaceholder: 'مثال: د. سارة نبيل',
+    clinicalDescription: 'العنوان فقط هو المطلوب — اترك بقية الحقول فارغة إن لم تنطبق.',
+    titlePlaceholder: 'مثال: فحص صحي دوري',
+    vaccinePlaceholder: 'مثال: إنفلونزا الخيول',
+    nextDoseHint: 'اتركه فارغًا إذا لم تكن هناك جرعة أخرى مخطط لها.',
+    diagnosisPlaceholder: 'مثال: إجهاد خفيف في الرباط المعلّق',
+    medicationPlaceholder: 'مثال: فينيل بيوتازون 2 غ مرتين يوميًا',
+    treatmentPlaceholder: 'ما الذي تم إجراؤه، وما الخطوة التالية.',
+    notesPlaceholder: 'الملاحظات والقراءات وكل ما يجب أن يعرفه الطبيب التالي.',
+    followUpDescription: 'حدّد تاريخًا ليظهر هذا السجل ضمن المواعيد الطبية القادمة.',
+    followUpPlaceholder: 'ما الذي يجب التحقق منه في المتابعة.',
+    saveError: 'تعذّر حفظ هذا السجل.',
+  },
+  create: {
+    title: 'إضافة سجل طبي',
+    description: (name: string) => `سجّل فحصًا أو تطعيمًا أو علاجًا أو إصابة لـ${name}.`,
+    submit: 'حفظ السجل',
+    submitting: 'جارٍ حفظ السجل',
+  },
+  edit: {
+    title: 'تعديل السجل الطبي',
+    description: (name: string) => `تحديث هذا السجل الخاص بـ${name}.`,
+    notFoundTitle: 'السجل الطبي غير موجود',
+    notFoundDescription: 'هذا السجل غير موجود، أو أنه يخص حصانًا آخر.',
+    loadErrorTitle: 'تعذّر تحميل هذا السجل الطبي',
+  },
+  saved: {
+    created: 'تمت إضافة السجل الطبي بنجاح.',
+    updated: 'تم تحديث السجل الطبي بنجاح.',
+  },
+  loading: {
+    records: 'جارٍ تحميل السجلات الطبية',
+    history: 'جارٍ تحميل السجل الطبي',
+    record: 'جارٍ تحميل السجل الطبي',
+  },
+};

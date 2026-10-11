@@ -76,7 +76,7 @@ export function NotificationListPage() {
           unreadCount > 0 ? (
             <Button variant="secondary" onClick={() => markAllRead()} loading={markingAll}>
               <CheckCheck className="size-4" aria-hidden="true" />
-              Mark all as read
+              {t.notifications.page.markAllRead}
             </Button>
           ) : undefined
         }
@@ -85,12 +85,13 @@ export function NotificationListPage() {
       <div className="rounded-card border border-stone-200 bg-white">
         <div
           role="tablist"
-          aria-label="Notification filter"
+          aria-label={t.notifications.page.filterLabel}
           className="flex gap-1 border-b border-stone-200 px-2 pt-2"
         >
           {(['all', 'unread'] as const).map((value) => {
             const active = value === tab;
-            const label = value === 'all' ? 'All' : 'Unread';
+            const label =
+              value === 'all' ? t.notifications.page.all : t.notifications.page.unreadTab;
             return (
               <button
                 key={value}
@@ -107,7 +108,7 @@ export function NotificationListPage() {
               >
                 {label}
                 {value === 'unread' && unreadCount > 0 ? (
-                  <span className="ml-1.5 text-stone-500">({unreadCount})</span>
+                  <span className="ms-1.5 text-stone-500">({unreadCount})</span>
                 ) : null}
               </button>
             );
@@ -119,11 +120,15 @@ export function NotificationListPage() {
         ) : shown.length === 0 ? (
           <div className="p-4 sm:p-5">
             <EmptyState
-              title={tab === 'unread' ? 'No unread notifications' : 'No notifications yet'}
+              title={
+                tab === 'unread'
+                  ? t.notifications.page.emptyUnreadTitle
+                  : t.notifications.page.emptyTitle
+              }
               description={
                 tab === 'unread'
-                  ? "You're all caught up — nothing new needs your attention."
-                  : 'Notifications about tasks, medical reminders and training will show up here.'
+                  ? t.notifications.page.emptyUnreadDescription
+                  : t.notifications.page.emptyDescription
               }
             />
           </div>

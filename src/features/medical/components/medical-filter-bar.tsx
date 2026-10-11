@@ -5,6 +5,7 @@ import { ListFilter, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { sortByLabel, useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { activeMedicalFilterCount, hasActiveMedicalFilters } from '../format';
 import type {
@@ -13,7 +14,7 @@ import type {
   MedicalRecordStatus,
   MedicalRecordType,
 } from '../types';
-import { recordStatusOptions, recordTypeOptions } from '../vocabulary';
+import { recordStatusValues, recordTypeValues } from '../vocabulary';
 
 interface MedicalFilterBarProps {
   filters: MedicalRecordFilters;
@@ -41,25 +42,26 @@ export function MedicalFilterBar({ filters, onChange, onReset, horses }: Medical
   const panelId = useId();
   const count = activeMedicalFilterCount(filters);
   const showReset = hasActiveMedicalFilters(filters);
+  const { t, tc, locale } = useI18n();
 
   return (
     <div className="space-y-3">
       <div className="flex gap-2">
         <div className="relative min-w-0 flex-1">
           <Search
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-stone-500"
+            className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-stone-500"
             aria-hidden="true"
           />
           <label htmlFor={searchId} className="sr-only">
-            Search medical records
+            {t.medical.filters.searchLabel}
           </label>
           <input
             id={searchId}
             type="search"
             value={filters.search}
-            placeholder="Search by horse, title, diagnosis, vet or medication"
+            placeholder={t.medical.filters.searchPlaceholder}
             onChange={(event) => onChange({ ...filters, search: event.target.value })}
-            className="sh-field h-10 pl-9"
+            className="sh-field h-10 ps-9"
           />
         </div>
 
@@ -71,7 +73,7 @@ export function MedicalFilterBar({ filters, onChange, onReset, horses }: Medical
           onClick={() => setOpen((value) => !value)}
         >
           <ListFilter className="size-4" aria-hidden="true" />
-          Filters
+          {t.common.filters}
           {count > 0 ? <span className="text-stone-600">({count})</span> : null}
         </Button>
       </div>
@@ -84,7 +86,7 @@ export function MedicalFilterBar({ filters, onChange, onReset, horses }: Medical
         )}
       >
         <label className="sr-only" htmlFor={`${panelId}-horse`}>
-          Filter by horse
+          {t.common.filterByHorse}
         </label>
         <Select
           id={`${panelId}-horse`}
@@ -92,16 +94,16 @@ export function MedicalFilterBar({ filters, onChange, onReset, horses }: Medical
           value={filters.horseId ?? ANY}
           onChange={(event) => onChange({ ...filters, horseId: event.target.value || null })}
         >
-          <option value={ANY}>All horses</option>
-          {horses.map((horse) => (
+          <option value={ANY}>{t.common.allHorses}</option>
+          {sortByLabel(horses, (horse) => tc(horse.name), locale).map((horse) => (
             <option key={horse.id} value={horse.id}>
-              {horse.name}
+              {tc(horse.name)}
             </option>
           ))}
         </Select>
 
         <label className="sr-only" htmlFor={`${panelId}-type`}>
-          Filter by record type
+          {t.medical.filters.filterByType}
         </label>
         <Select
           id={`${panelId}-type`}
@@ -114,16 +116,16 @@ export function MedicalFilterBar({ filters, onChange, onReset, horses }: Medical
             })
           }
         >
-          <option value={ANY}>All record types</option>
-          {recordTypeOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
+          <option value={ANY}>{t.medical.filters.allTypes}</option>
+          {recordTypeValues.map((value) => (
+            <option key={value} value={value}>
+              {t.medical.recordTypes[value]}
             </option>
           ))}
         </Select>
 
         <label className="sr-only" htmlFor={`${panelId}-status`}>
-          Filter by status
+          {t.common.filterByStatus}
         </label>
         <Select
           id={`${panelId}-status`}
@@ -136,19 +138,19 @@ export function MedicalFilterBar({ filters, onChange, onReset, horses }: Medical
             })
           }
         >
-          <option value={ANY}>All statuses</option>
-          {recordStatusOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
+          <option value={ANY}>{t.common.allStatuses}</option>
+          {recordStatusValues.map((value) => (
+            <option key={value} value={value}>
+              {t.medical.statuses[value]}
             </option>
           ))}
         </Select>
 
         {/* The two date inputs are one control, so they carry one visible label. */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-stone-600">Dated</span>
+          <span className="text-sm text-stone-600">{t.common.dated}</span>
           <label className="sr-only" htmlFor={`${panelId}-from`}>
-            From date
+            {t.common.fromDate}
           </label>
           <Input
             id={`${panelId}-from`}
@@ -158,9 +160,9 @@ export function MedicalFilterBar({ filters, onChange, onReset, horses }: Medical
             max={filters.dateTo || undefined}
             onChange={(event) => onChange({ ...filters, dateFrom: event.target.value })}
           />
-          <span className="text-sm text-stone-600">to</span>
+          <span className="text-sm text-stone-600">{t.common.dateRangeTo}</span>
           <label className="sr-only" htmlFor={`${panelId}-to`}>
-            To date
+            {t.common.toDate}
           </label>
           <Input
             id={`${panelId}-to`}
@@ -175,7 +177,7 @@ export function MedicalFilterBar({ filters, onChange, onReset, horses }: Medical
         {showReset ? (
           <Button variant="ghost" size="sm" onClick={onReset} className="justify-self-start">
             <X className="size-4" aria-hidden="true" />
-            Clear filters
+            {t.common.clearFilters}
           </Button>
         ) : null}
       </div>

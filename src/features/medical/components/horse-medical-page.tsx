@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { HorsePhoto } from '@/features/horses/components/horse-photo';
 import { HorseStatusBadge } from '@/features/horses/components/horse-status-badge';
 import { useHorse } from '@/features/horses/use-horse';
+import { useI18n } from '@/i18n';
 import {
   formatRecordDate,
   formatRelativeDay,
@@ -43,13 +44,14 @@ import { VaccinationList } from './vaccination-list';
  */
 
 function BackLink() {
+  const { t } = useI18n();
   return (
     <Link
       href="/medical"
-      className="hover:text-ink -ml-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-sm font-medium text-stone-600"
+      className="hover:text-ink -ms-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-sm font-medium text-stone-600"
     >
       <ChevronLeft className="size-4 rtl:rotate-180" aria-hidden="true" />
-      Back to health
+      {t.medical.backToHealth}
     </Link>
   );
 }
@@ -73,13 +75,15 @@ export function HorseMedicalPage({ horseId }: { horseId: string }) {
   const { events } = useUpcomingMedicalEvents(horseId);
 
   const horse = horseQuery.horse;
+  const { t, tc, locale } = useI18n();
+  const p = t.medical.horsePage;
 
   if (horseQuery.isPending) {
     return (
       <div className="space-y-4">
         <BackLink />
         <div role="status" aria-busy="true" className="space-y-4">
-          <span className="sr-only">Loading horse</span>
+          <span className="sr-only">{t.common.loadingHorse}</span>
           <div className="rounded-card border border-stone-200 bg-white p-4 sm:p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <Skeleton className="rounded-card size-24 sm:size-28" />
@@ -100,9 +104,9 @@ export function HorseMedicalPage({ horseId }: { horseId: string }) {
       <div className="space-y-4">
         <BackLink />
         <EmptyState
-          title="Horse not found"
-          description="This horse doesn't exist, or it is no longer part of your farm."
-          action={<ButtonLink href="/medical">Back to health</ButtonLink>}
+          title={t.common.horseNotFoundTitle}
+          description={t.common.horseNotFoundDescription}
+          action={<ButtonLink href="/medical">{t.medical.backToHealth}</ButtonLink>}
         />
       </div>
     );
@@ -113,15 +117,15 @@ export function HorseMedicalPage({ horseId }: { horseId: string }) {
       <div className="space-y-4">
         <BackLink />
         <ErrorState
-          title="We couldn't load this horse"
-          description="Something went wrong while loading the record. Check your connection and try again."
+          title={t.common.horseLoadErrorTitle}
+          description={t.common.recordLoadErrorDescription}
           action={
             <Button
               variant="secondary"
               onClick={() => void horseQuery.refetch()}
               loading={horseQuery.isRefetching}
             >
-              Try again
+              {t.common.tryAgain}
             </Button>
           }
         />
@@ -133,6 +137,7 @@ export function HorseMedicalPage({ horseId }: { horseId: string }) {
   const nextDose = nextVaccination(vaccinations);
   const nextDoseDate = nextDose ? vaccinationTargetDate(nextDose) : null;
   const followUps = openFollowUps(history.records);
+  const horseName = tc(horse.name);
 
   return (
     <div className="space-y-4">
@@ -143,23 +148,23 @@ export function HorseMedicalPage({ horseId }: { horseId: string }) {
           pages feel like one record seen from two sides. */}
       <div className="rounded-card border border-stone-200 bg-white p-4 sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <HorsePhoto name={horse.name} src={horse.imageUrl} size="lg" />
+          <HorsePhoto name={horseName} src={horse.imageUrl} size="lg" />
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <h2 className="text-xl font-semibold break-words sm:text-2xl">{horse.name}</h2>
+              <h2 className="text-xl font-semibold break-words sm:text-2xl">{horseName}</h2>
               <HorseStatusBadge status={horse.status} />
             </div>
-            <p className="mt-1 text-stone-600">{horse.breed}</p>
+            <p className="mt-1 text-stone-600">{tc(horse.breed)}</p>
           </div>
 
           <div className="flex flex-wrap gap-2 self-start sm:self-center">
             <ButtonLink href={`/horses/${horse.id}`} variant="secondary">
-              View horse profile
+              {p.viewHorseProfile}
             </ButtonLink>
             <ButtonLink href={`/medical/horses/${horse.id}/new`}>
               <Plus className="size-4" aria-hidden="true" />
-              Add record
+              {p.addRecord}
             </ButtonLink>
           </div>
         </div>
@@ -167,15 +172,15 @@ export function HorseMedicalPage({ horseId }: { horseId: string }) {
 
       {history.isError ? (
         <ErrorState
-          title="We couldn't load this horse's medical history"
-          description="Something went wrong while loading the health data. Check your connection and try again."
+          title={p.historyErrorTitle}
+          description={p.historyErrorDescription}
           action={
             <Button
               variant="secondary"
               onClick={() => void history.refetch()}
               loading={history.isRefetching}
             >
-              Try again
+              {t.common.tryAgain}
             </Button>
           }
         />
@@ -185,25 +190,27 @@ export function HorseMedicalPage({ horseId }: { horseId: string }) {
             <HealthStatusCard health={history.health} />
 
             <Card className="lg:col-span-2">
-              <CardHeader title="Health summary" headingLevel={3} />
+              <CardHeader title={p.healthSummary} headingLevel={3} />
               <CardBody className="grid gap-3 sm:grid-cols-3">
                 <SummaryFact
-                  label="Last vet visit"
-                  value={lastVisit ? formatRecordDate(lastVisit.date) : 'None recorded'}
-                  detail={lastVisit?.veterinarian ?? undefined}
+                  label={p.lastVetVisit}
+                  value={lastVisit ? formatRecordDate(lastVisit.date, locale) : p.noneRecorded}
+                  detail={lastVisit?.veterinarian ? tc(lastVisit.veterinarian) : undefined}
                 />
                 <SummaryFact
-                  label="Next vaccination"
-                  value={nextDoseDate ? formatRecordDate(nextDoseDate) : 'None due'}
-                  detail={nextDose?.vaccineName}
+                  label={p.nextVaccination}
+                  value={nextDoseDate ? formatRecordDate(nextDoseDate, locale) : p.noneDue}
+                  detail={nextDose ? tc(nextDose.vaccineName) : undefined}
                 />
                 <SummaryFact
-                  label="Open follow-ups"
+                  label={p.openFollowUps}
                   value={String(followUps.length)}
                   detail={
                     followUps[0]?.followUpDate
-                      ? `Next ${formatRelativeDay(followUps[0].followUpDate).toLowerCase()}`
-                      : 'Nothing outstanding'
+                      ? p.nextFollowUp(
+                          formatRelativeDay(followUps[0].followUpDate, undefined, locale),
+                        )
+                      : p.nothingOutstanding
                   }
                 />
               </CardBody>
@@ -212,8 +219,8 @@ export function HorseMedicalPage({ horseId }: { horseId: string }) {
 
           <Card>
             <CardHeader
-              title="Medical timeline"
-              description="Every record for this horse, newest first. Select one to see it in full."
+              title={p.timelineTitle}
+              description={p.timelineDescription}
               headingLevel={3}
             />
             <CardBody>
@@ -221,12 +228,12 @@ export function HorseMedicalPage({ horseId }: { horseId: string }) {
                 <MedicalTimelineSkeleton />
               ) : history.records.length === 0 ? (
                 <EmptyState
-                  title="No medical records found"
-                  description={`Nothing has been recorded for ${horse.name} yet. Add the first record to start its medical history.`}
+                  title={p.noRecordsTitle}
+                  description={p.noRecordsDescription(horseName)}
                   action={
                     <ButtonLink href={`/medical/horses/${horse.id}/new`}>
                       <Plus className="size-4" aria-hidden="true" />
-                      Add record
+                      {p.addRecord}
                     </ButtonLink>
                   }
                 />
@@ -238,12 +245,10 @@ export function HorseMedicalPage({ horseId }: { horseId: string }) {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
-              <CardHeader title="Upcoming medical events" headingLevel={3} />
+              <CardHeader title={p.upcomingTitle} headingLevel={3} />
               <CardBody>
                 {events.length === 0 ? (
-                  <p className="text-sm text-stone-600">
-                    No upcoming medical events for {horse.name}.
-                  </p>
+                  <p className="text-sm text-stone-600">{p.noUpcoming(horseName)}</p>
                 ) : (
                   <UpcomingMedicalEvents events={events} showHorse={false} />
                 )}
@@ -251,10 +256,10 @@ export function HorseMedicalPage({ horseId }: { horseId: string }) {
             </Card>
 
             <Card>
-              <CardHeader title="Vaccinations" headingLevel={3} />
+              <CardHeader title={p.vaccinationsTitle} headingLevel={3} />
               <CardBody>
                 {vaccinations.length === 0 ? (
-                  <p className="text-sm text-stone-600">No vaccinations found for {horse.name}.</p>
+                  <p className="text-sm text-stone-600">{p.noVaccinations(horseName)}</p>
                 ) : (
                   <VaccinationList vaccinations={vaccinations} showHorse={false} compact />
                 )}

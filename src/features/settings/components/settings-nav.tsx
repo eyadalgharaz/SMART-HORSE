@@ -3,19 +3,25 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Building2, ShieldCheck, User, Users } from 'lucide-react';
+import { useTranslations, type Dictionary } from '@/i18n';
 import { cn } from '@/lib/cn';
 
-const SECTIONS = [
-  { href: '/settings/farm', label: 'Farm Profile', icon: Building2 },
-  { href: '/settings/team', label: 'Team Members', icon: Users },
-  { href: '/settings/roles', label: 'Roles & Permissions', icon: ShieldCheck },
-  { href: '/settings/account', label: 'Account', icon: User },
-] as const;
+const SECTIONS: {
+  href: string;
+  key: keyof Dictionary['settings']['sections'];
+  icon: typeof Building2;
+}[] = [
+  { href: '/settings/farm', key: 'farm', icon: Building2 },
+  { href: '/settings/team', key: 'team', icon: Users },
+  { href: '/settings/roles', key: 'roles', icon: ShieldCheck },
+  { href: '/settings/account', key: 'account', icon: User },
+];
 
 /**
- * The left-hand navigation every Settings subpage shares. A plain list of
- * links rather than tabs: each section is its own route with its own data,
- * not a view over one shared payload, so a link is the honest affordance.
+ * The section navigation every Settings subpage shares, on the reading-start
+ * side (left in English, right in Arabic). A plain list of links rather than
+ * tabs: each section is its own route with its own data, not a view over one
+ * shared payload, so a link is the honest affordance.
  *
  * Collapses to a horizontal scroller below `lg` rather than stacking
  * vertically above the content, so a narrow screen never has to scroll past
@@ -23,9 +29,10 @@ const SECTIONS = [
  */
 export function SettingsNav() {
   const pathname = usePathname();
+  const t = useTranslations();
 
   return (
-    <nav aria-label="Settings sections">
+    <nav aria-label={t.settings.navLabel}>
       <ul className="flex gap-1 overflow-x-auto border-b border-stone-200 pb-px lg:block lg:space-y-1 lg:border-b-0 lg:pb-0">
         {SECTIONS.map((section) => {
           const active = pathname?.startsWith(section.href) ?? false;
@@ -41,7 +48,7 @@ export function SettingsNav() {
                 )}
               >
                 <Icon className="size-4 shrink-0" aria-hidden="true" />
-                {section.label}
+                {t.settings.sections[section.key].title}
               </Link>
             </li>
           );

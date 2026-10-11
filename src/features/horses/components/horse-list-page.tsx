@@ -6,7 +6,7 @@ import { Button, ButtonLink } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { PageHeader } from '@/components/layout/page-header';
-import { useTranslations } from '@/i18n';
+import { useI18n } from '@/i18n';
 import { formatHorseCount } from '../format';
 import { emptyHorseFilters, type HorseFilters } from '../types';
 import { useHorses } from '../use-horses';
@@ -25,7 +25,7 @@ export function HorseListPage() {
   const [filters, setFilters] = useState<HorseFilters>(emptyHorseFilters);
   const { horses, totalCount, breeds, isPending, isError, isRefetching, refetch } =
     useHorses(filters);
-  const t = useTranslations();
+  const { t, locale } = useI18n();
 
   return (
     <>
@@ -70,7 +70,7 @@ export function HorseListPage() {
             action={
               <ButtonLink href="/horses/new">
                 <Plus className="size-4" aria-hidden="true" />
-                Add horse
+                {t.pages.horses.addHorse}
               </ButtonLink>
             }
           />
@@ -84,16 +84,16 @@ export function HorseListPage() {
             />
 
             <p role="status" className="text-sm text-stone-600">
-              {formatHorseCount(horses.length, totalCount)}
+              {formatHorseCount(horses.length, totalCount, locale)}
             </p>
 
             {horses.length === 0 ? (
               <EmptyState
-                title="No horses match your search"
-                description="Try a different name or number, or widen the filters."
+                title={t.horses.noMatchTitle}
+                description={t.horses.noMatchDescription}
                 action={
                   <Button variant="secondary" onClick={() => setFilters(emptyHorseFilters)}>
-                    Clear filters
+                    {t.horses.clearFilters}
                   </Button>
                 }
               />

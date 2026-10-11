@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
-import { useGenderLabel, useHorseName, useTranslations } from '@/i18n';
+import { useGenderLabel, useHorseName, useI18n, useTranslations } from '@/i18n';
 import { formatAge } from '../format';
 import type { Horse } from '../types';
 import { HorsePhoto } from './horse-photo';
@@ -21,7 +21,7 @@ export function HorseTable({ horses }: { horses: Horse[] }) {
 
   return (
     <div className="rounded-card hidden overflow-hidden border border-stone-200 bg-white lg:block">
-      <table className="w-full border-collapse text-left">
+      <table className="w-full border-collapse text-start">
         <caption className="sr-only">{t.horses.table.caption}</caption>
         <thead>
           <tr className="border-b border-stone-200 text-sm text-stone-600">
@@ -59,7 +59,7 @@ export function HorseTable({ horses }: { horses: Horse[] }) {
 }
 
 function HorseRow({ horse }: { horse: Horse }) {
-  const t = useTranslations();
+  const { t, tc, locale } = useI18n();
   const displayName = useHorseName(horse.name);
   const genderLabel = useGenderLabel(horse.gender);
 
@@ -75,16 +75,18 @@ function HorseRow({ horse }: { horse: Horse }) {
             >
               {displayName}
             </Link>
-            <span className="block truncate text-sm text-stone-600">{horse.color}</span>
+            <span className="block truncate text-sm text-stone-600">{tc(horse.color)}</span>
           </span>
         </span>
       </th>
-      <td className="px-3 py-3">{horse.breed}</td>
+      <td className="px-3 py-3">{tc(horse.breed)}</td>
       <td className="px-3 py-3">{genderLabel}</td>
-      <td className="px-3 py-3 whitespace-nowrap">{formatAge(horse.birthDate)}</td>
+      <td className="px-3 py-3 whitespace-nowrap">
+        {formatAge(horse.birthDate, undefined, locale)}
+      </td>
       <td className="hidden px-3 py-3 xl:table-cell">
         {horse.owner ? (
-          horse.owner.name
+          tc(horse.owner.name)
         ) : (
           <span className="text-stone-500 italic">{t.horses.unassigned}</span>
         )}

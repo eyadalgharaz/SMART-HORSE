@@ -10,7 +10,7 @@ import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { useFormErrors } from '@/hooks/use-form-errors';
 import { useAuth } from '@/features/auth/auth-provider';
-import { useRoleLabel } from '@/i18n';
+import { useI18n, useRoleLabel } from '@/i18n';
 import { useUpdateAccount } from '../hooks/use-account';
 import { accountProfileSchema, toAccountInput } from '../schemas';
 import type { Account } from '../types';
@@ -30,6 +30,9 @@ export function AccountProfileForm({ account }: { account: Account }) {
   const [submitting, setSubmitting] = useState(false);
   const { mutateAsync } = useUpdateAccount();
   const roleLabel = useRoleLabel(account.farmRole ?? 'FarmOwner');
+  const { t, tm } = useI18n();
+  const a = t.settings.account;
+  const f = t.settings.fields;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,7 +55,7 @@ export function AccountProfileForm({ account }: { account: Account }) {
       updateUser({ fullName: input.fullName, email: input.email });
       router.push(savedUrl('/settings/account', 'profile'));
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Could not save your profile.');
+      setFormError(error instanceof Error ? error.message : a.profileError);
     } finally {
       setSubmitting(false);
     }
@@ -60,39 +63,39 @@ export function AccountProfileForm({ account }: { account: Account }) {
 
   return (
     <Card>
-      <CardHeader title="Profile" headingLevel={3} />
+      <CardHeader title={a.profile} headingLevel={3} />
       <CardBody>
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
-          {formError ? <Alert tone="error">{formError}</Alert> : null}
+          {formError ? <Alert tone="error">{tm(formError)}</Alert> : null}
 
           <div className="flex items-center gap-4">
             <Avatar name={account.fullName} className="size-14 text-base" />
             <div className="text-sm text-stone-600">
               {account.farmRole ? (
                 <p>
-                  Signed in as <span className="text-ink font-medium">{roleLabel}</span>
+                  {a.signedInAs} <span className="text-ink font-medium">{roleLabel}</span>
                 </p>
               ) : null}
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="Full name" error={errors.fullName} required>
+            <FormField label={f.fullName} error={errors.fullName} required>
               <Input name="fullName" defaultValue={account.fullName} maxLength={80} />
             </FormField>
 
-            <FormField label="Email" error={errors.email} required>
+            <FormField label={f.email} error={errors.email} required>
               <Input type="email" name="email" defaultValue={account.email} />
             </FormField>
 
-            <FormField label="Phone" error={errors.phone} hint="Optional.">
+            <FormField label={f.phone} error={errors.phone} hint={t.common.optional}>
               <Input type="tel" name="phone" defaultValue={account.phone ?? ''} />
             </FormField>
           </div>
 
           <div className="flex justify-end">
             <Button type="submit" loading={submitting}>
-              {submitting ? 'Saving profile' : 'Save profile'}
+              {submitting ? a.savingProfile : a.saveProfile}
             </Button>
           </div>
         </form>

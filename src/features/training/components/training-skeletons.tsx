@@ -1,4 +1,7 @@
+'use client';
+
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslations } from '@/i18n';
 
 /**
  * Loading placeholders that mirror the loaded layout block for block, so
@@ -20,10 +23,11 @@ export function TrainingSummarySkeleton() {
   );
 }
 
-export function TrainingListSkeleton({ label = 'Loading training sessions' }: { label?: string }) {
+export function TrainingListSkeleton({ label }: { label?: string }) {
+  const t = useTranslations();
   return (
     <div role="status" aria-busy="true">
-      <span className="sr-only">{label}</span>
+      <span className="sr-only">{label ?? t.training.loading.sessions}</span>
 
       <div className="rounded-card hidden divide-y divide-stone-200 border border-stone-200 bg-white lg:block">
         {Array.from({ length: 6 }, (_, index) => (
@@ -55,9 +59,10 @@ export function TrainingListSkeleton({ label = 'Loading training sessions' }: { 
 }
 
 export function TrainingTimelineSkeleton() {
+  const t = useTranslations();
   return (
     <div role="status" aria-busy="true" className="space-y-4">
-      <span className="sr-only">Loading training history</span>
+      <span className="sr-only">{t.training.loading.history}</span>
       {Array.from({ length: 5 }, (_, index) => (
         <div key={index} className="flex gap-3">
           <Skeleton className="size-8 shrink-0 rounded-md" />
@@ -73,9 +78,10 @@ export function TrainingTimelineSkeleton() {
 }
 
 export function TrainingFormSkeleton() {
+  const t = useTranslations();
   return (
     <div role="status" aria-busy="true" className="space-y-4">
-      <span className="sr-only">Loading training session</span>
+      <span className="sr-only">{t.training.loading.session}</span>
       {Array.from({ length: 3 }, (_, index) => (
         <div key={index} className="rounded-card border border-stone-200 bg-white p-5">
           <Skeleton className="h-5 w-40" />

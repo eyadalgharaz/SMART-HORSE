@@ -8,10 +8,12 @@ import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { useFormErrors } from '@/hooks/use-form-errors';
+import { useGenderOptions, useI18n, useStatusOptions } from '@/i18n';
+import { restoreSource } from '@/i18n/translate';
 import { toDateInputValue } from '../format';
 import { horseFormSchema, toHorseInput, type HorseFormValues } from '../schemas';
 import type { Horse, HorseInput } from '../types';
-import { breedOptions, genderOptions, statusOptions } from '../vocabulary';
+import { breedOptions } from '../vocabulary';
 import { HorseImageField } from './horse-image-field';
 
 const today = () => toDateInputValue(new Date().toISOString());
@@ -68,11 +70,23 @@ export function HorseForm({
   onSubmit,
   onCancelHref,
 }: HorseFormProps) {
-  const defaults = defaultsFrom(horse);
+  const { t, tc, tm } = useI18n();
+  const stored = defaultsFrom(horse);
+  // Names, breed, colour and owner show in the active language; an unchanged
+  // field saves its stored value, not the translation (see `restoreSource`).
+  const defaults = {
+    ...stored,
+    name: tc(stored.name),
+    breed: tc(stored.breed),
+    color: tc(stored.color),
+    ownerName: tc(stored.ownerName),
+  };
   const { errors, validate } = useFormErrors(horseFormSchema);
   const [imageUrl, setImageUrl] = useState<string | null>(defaults.imageUrl);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const genderOptions = useGenderOptions();
+  const statusOptions = useStatusOptions();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -80,14 +94,14 @@ export function HorseForm({
 
     const data = new FormData(event.currentTarget);
     const values = validate({
-      name: String(data.get('name') ?? ''),
-      breed: String(data.get('breed') ?? ''),
+      name: restoreSource(String(data.get('name') ?? ''), stored.name, tc),
+      breed: restoreSource(String(data.get('breed') ?? ''), stored.breed, tc),
       gender: String(data.get('gender') ?? ''),
       birthDate: String(data.get('birthDate') ?? ''),
-      color: String(data.get('color') ?? ''),
+      color: restoreSource(String(data.get('color') ?? ''), stored.color, tc),
       registrationNumber: String(data.get('registrationNumber') ?? ''),
       microchipNumber: String(data.get('microchipNumber') ?? ''),
-      ownerName: String(data.get('ownerName') ?? ''),
+      ownerName: restoreSource(String(data.get('ownerName') ?? ''), stored.ownerName, tc),
       status: String(data.get('status') ?? ''),
     });
     if (!values) return;
@@ -96,42 +110,49 @@ export function HorseForm({
     try {
       await onSubmit(toHorseInput(values, imageUrl));
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Could not save this horse.');
+      setFormError(error instanceof Error ? error.message : t.horses.saveError);
       setSubmitting(false);
     }
   }
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
-      {formError ? <Alert tone="error">{formError}</Alert> : null}
+      {formError ? <Alert tone="error">{tm(formError)}</Alert> : null}
 
       <Card>
-        <CardHeader title="Basic information" headingLevel={3} />
+        <CardHeader title={t.horses.sections.basicInfo} headingLevel={3} />
         <CardBody className="grid gap-4 sm:grid-cols-2">
-          <FormField label="Name" error={errors.name} required>
+          <FormField label={t.horses.fields.name} error={errors.name} required>
             <Input
               name="name"
               defaultValue={defaults.name}
-              placeholder="e.g. Luna"
+              placeholder={t.horses.placeholders.name}
               maxLength={60}
             />
           </FormField>
 
-          <FormField label="Breed" error={errors.breed} required>
+          <FormField label={t.horses.fields.breed} error={errors.breed} required>
             <Input
               name="breed"
               list="horse-breed-options"
               defaultValue={defaults.breed}
-              placeholder="e.g. Arabian"
+              placeholder={t.horses.placeholders.breed}
             />
           </FormField>
+          {/* The stored value stays the breed's standard (English) name, so
+              records match across languages; the localized name is shown
+              beside it as the suggestion's label. */}
           <datalist id="horse-breed-options">
             {breedOptions.map((breed) => (
-              <option key={breed} value={breed} />
+              <option
+                key={breed}
+                value={breed}
+                label={tc(breed) !== breed ? tc(breed) : undefined}
+              />
             ))}
           </datalist>
 
-          <FormField label="Gender" error={errors.gender} required>
+          <FormField label={t.horses.fields.gender} error={errors.gender} required>
             <Select name="gender" defaultValue={defaults.gender}>
               {genderOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -141,20 +162,20 @@ export function HorseForm({
             </Select>
           </FormField>
 
-          <FormField label="Color" error={errors.color} required>
+          <FormField label={t.horses.fields.color} error={errors.color} required>
             <Input
               name="color"
               defaultValue={defaults.color}
-              placeholder="e.g. Grey"
+              placeholder={t.horses.placeholders.color}
               maxLength={40}
             />
           </FormField>
 
-          <FormField label="Birth date" error={errors.birthDate} required>
+          <FormField label={t.horses.fields.birthDate} error={errors.birthDate} required>
             <Input type="date" name="birthDate" defaultValue={defaults.birthDate} max={today()} />
           </FormField>
 
-          <FormField label="Status" error={errors.status} required>
+          <FormField label={t.horses.fields.status} error={errors.status} required>
             <Select name="status" defaultValue={defaults.status}>
               {statusOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -168,48 +189,50 @@ export function HorseForm({
 
       <Card>
         <CardHeader
-          title="Identification"
-          description="Leave blank if not yet issued."
+          title={t.horses.sections.identification}
+          description={t.horses.hints.identification}
           headingLevel={3}
         />
         <CardBody className="grid gap-4 sm:grid-cols-2">
-          <FormField label="Registration number" error={errors.registrationNumber}>
+          <FormField label={t.horses.fields.registrationNumber} error={errors.registrationNumber}>
             <Input
               name="registrationNumber"
               defaultValue={defaults.registrationNumber}
-              placeholder="e.g. AHA-284193"
+              placeholder={t.horses.placeholders.registration}
               maxLength={32}
+              dir="ltr"
             />
           </FormField>
 
           <FormField
-            label="Microchip number"
+            label={t.horses.fields.microchipNumber}
             error={errors.microchipNumber}
-            hint="15 digits, as printed on the chip certificate."
+            hint={t.horses.hints.microchip}
           >
             <Input
               name="microchipNumber"
               defaultValue={defaults.microchipNumber}
-              placeholder="e.g. 985141002734611"
+              placeholder={t.horses.placeholders.microchip}
               inputMode="numeric"
               maxLength={15}
+              dir="ltr"
             />
           </FormField>
         </CardBody>
       </Card>
 
       <Card>
-        <CardHeader title="Ownership" headingLevel={3} />
+        <CardHeader title={t.horses.sections.ownership} headingLevel={3} />
         <CardBody>
           <FormField
-            label="Owner"
+            label={t.horses.fields.owner}
             error={errors.ownerName}
-            hint="Leave blank if this horse has no assigned owner yet."
+            hint={t.horses.hints.owner}
           >
             <Input
               name="ownerName"
               defaultValue={defaults.ownerName}
-              placeholder="e.g. Ahmed Hassan"
+              placeholder={t.horses.placeholders.owner}
               maxLength={80}
             />
           </FormField>
@@ -217,7 +240,7 @@ export function HorseForm({
       </Card>
 
       <Card>
-        <CardHeader title="Photo" headingLevel={3} />
+        <CardHeader title={t.horses.sections.photo} headingLevel={3} />
         <CardBody>
           <HorseImageField name={defaults.name} value={imageUrl} onChange={setImageUrl} />
         </CardBody>
@@ -225,7 +248,7 @@ export function HorseForm({
 
       <div className="flex flex-wrap justify-end gap-2">
         <ButtonLink href={onCancelHref} variant="secondary">
-          Cancel
+          {t.common.cancel}
         </ButtonLink>
         <Button type="submit" loading={submitting}>
           {submitting ? submittingLabel : submitLabel}

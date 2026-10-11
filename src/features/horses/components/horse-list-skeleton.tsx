@@ -1,4 +1,7 @@
+'use client';
+
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslations } from '@/i18n';
 
 const ROWS = 6;
 
@@ -8,9 +11,10 @@ const ROWS = 6;
  * announced; the blocks themselves are decorative.
  */
 export function HorseListSkeleton() {
+  const t = useTranslations();
   return (
     <div role="status" aria-busy="true">
-      <span className="sr-only">Loading horses</span>
+      <span className="sr-only">{t.horses.loadingHorses}</span>
 
       <div className="rounded-card hidden divide-y divide-stone-200 border border-stone-200 bg-white lg:block">
         {Array.from({ length: ROWS }, (_, index) => (

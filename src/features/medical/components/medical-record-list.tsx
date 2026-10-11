@@ -1,9 +1,9 @@
 'use client';
 
 import { Paperclip } from 'lucide-react';
+import { useI18n } from '@/i18n';
 import { formatRecordDate, recordSummary } from '../format';
 import type { MedicalRecord } from '../types';
-import { recordTypeLabels } from '../vocabulary';
 import { MedicalStatusBadge, RecordTypeLabel } from './medical-status-badge';
 
 /**
@@ -18,12 +18,13 @@ import { MedicalStatusBadge, RecordTypeLabel } from './medical-status-badge';
  */
 
 function AttachmentCount({ count }: { count: number }) {
+  const { t } = useI18n();
   if (count === 0) return null;
   return (
     <span className="inline-flex items-center gap-1 text-sm text-stone-600">
       <Paperclip className="size-3.5" aria-hidden="true" />
       {count}
-      <span className="sr-only">{count === 1 ? 'attachment' : 'attachments'}</span>
+      <span className="sr-only">{t.medical.list.attachmentsSr(count)}</span>
     </span>
   );
 }
@@ -35,30 +36,33 @@ export function MedicalRecordList({
   records: MedicalRecord[];
   onSelect: (record: MedicalRecord) => void;
 }) {
+  const { t, tc, locale } = useI18n();
+  const f = t.medical.fields;
+
   return (
     <>
       <div className="rounded-card hidden overflow-hidden border border-stone-200 bg-white lg:block">
-        <table className="w-full border-collapse text-left">
-          <caption className="sr-only">Medical records</caption>
+        <table className="w-full border-collapse text-start">
+          <caption className="sr-only">{t.medical.list.caption}</caption>
           <thead>
             <tr className="border-b border-stone-200 text-sm text-stone-600">
               <th scope="col" className="px-5 py-3 font-medium">
-                Date
+                {f.date}
               </th>
               <th scope="col" className="px-3 py-3 font-medium">
-                Horse
+                {f.horse}
               </th>
               <th scope="col" className="px-3 py-3 font-medium">
-                Record
+                {t.medical.list.record}
               </th>
               <th scope="col" className="px-3 py-3 font-medium">
-                Type
+                {t.medical.list.type}
               </th>
               <th scope="col" className="hidden px-3 py-3 font-medium xl:table-cell">
-                Veterinarian
+                {f.veterinarian}
               </th>
               <th scope="col" className="px-5 py-3 font-medium">
-                Status
+                {f.status}
               </th>
             </tr>
           </thead>
@@ -66,20 +70,20 @@ export function MedicalRecordList({
             {records.map((record) => (
               <tr key={record.id} className="hover:bg-stone-50">
                 <td className="px-5 py-3 align-top whitespace-nowrap">
-                  <time dateTime={record.date}>{formatRecordDate(record.date)}</time>
+                  <time dateTime={record.date}>{formatRecordDate(record.date, locale)}</time>
                 </td>
-                <td className="px-3 py-3 align-top">{record.horseName}</td>
+                <td className="px-3 py-3 align-top">{tc(record.horseName)}</td>
                 <th scope="row" className="px-3 py-3 align-top font-normal">
                   <button
                     type="button"
                     onClick={() => onSelect(record)}
-                    className="hover:text-pasture-600 block text-left font-medium hover:underline"
+                    className="hover:text-pasture-600 block text-start font-medium hover:underline"
                   >
-                    {record.title}
+                    {tc(record.title)}
                   </button>
                   <span className="mt-0.5 flex items-center gap-3">
                     <span className="line-clamp-1 text-sm text-stone-600">
-                      {recordSummary(record)}
+                      {recordSummary(record, locale, tc)}
                     </span>
                     <AttachmentCount count={record.attachments.length} />
                   </span>
@@ -88,7 +92,11 @@ export function MedicalRecordList({
                   <RecordTypeLabel type={record.recordType} />
                 </td>
                 <td className="hidden px-3 py-3 align-top xl:table-cell">
-                  {record.veterinarian ?? <span className="text-stone-500 italic">No vet</span>}
+                  {record.veterinarian ? (
+                    tc(record.veterinarian)
+                  ) : (
+                    <span className="text-stone-500 italic">{t.medical.list.noVet}</span>
+                  )}
                 </td>
                 <td className="px-5 py-3 align-top">
                   <MedicalStatusBadge status={record.status} />
@@ -101,19 +109,19 @@ export function MedicalRecordList({
 
       <ul className="grid gap-3 sm:grid-cols-2 lg:hidden">
         {records.map((record) => {
-          const summary = recordSummary(record);
+          const summary = recordSummary(record, locale, tc);
           return (
             <li key={record.id}>
               <button
                 type="button"
                 onClick={() => onSelect(record)}
-                className="rounded-card h-full w-full border border-stone-200 bg-white p-4 text-left hover:bg-stone-50"
+                className="rounded-card h-full w-full border border-stone-200 bg-white p-4 text-start hover:bg-stone-50"
               >
                 <span className="flex items-start justify-between gap-3">
                   <span className="min-w-0">
-                    <span className="block font-medium break-words">{record.title}</span>
+                    <span className="block font-medium break-words">{tc(record.title)}</span>
                     <span className="block text-sm text-stone-600">
-                      {record.horseName} · {recordTypeLabels[record.recordType]}
+                      {tc(record.horseName)} · {t.medical.recordTypes[record.recordType]}
                     </span>
                   </span>
                   <MedicalStatusBadge status={record.status} />
@@ -124,10 +132,12 @@ export function MedicalRecordList({
                 ) : null}
 
                 <span className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-stone-200 pt-3 text-sm text-stone-600">
-                  <time dateTime={record.date}>{formatRecordDate(record.date)}</time>
+                  <time dateTime={record.date}>{formatRecordDate(record.date, locale)}</time>
                   <span className="flex items-center gap-3">
                     <AttachmentCount count={record.attachments.length} />
-                    <span className="truncate">{record.veterinarian ?? 'No vet'}</span>
+                    <span className="truncate">
+                      {record.veterinarian ? tc(record.veterinarian) : t.medical.list.noVet}
+                    </span>
                   </span>
                 </span>
               </button>

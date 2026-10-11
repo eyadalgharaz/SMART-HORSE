@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Pencil } from 'lucide-react';
+import { useI18n } from '@/i18n';
 import {
   formatDistance,
   formatDuration,
@@ -11,13 +12,12 @@ import {
 } from '../format';
 import type { TrainingSession } from '../types';
 import { TrainingSessionStatusBadge, TrainingTypeIcon } from './training-status-badge';
-import { trainingTypeLabels } from '../vocabulary';
 
 /**
  * A horse's training history as a chronological timeline, newest first,
  * grouped under the year each session belongs to. Mirrors the Medical
- * timeline's shape — a rail with a marker per session — so the two modules
- * read as one product.
+ * timeline's shape — a rail on the reading-start edge with a marker per
+ * session — so the two modules read as one product.
  *
  * Each row links straight to that session's edit page: unlike Medical there
  * is no separate detail dialog for a session, so editing is the one
@@ -29,6 +29,7 @@ export function TrainingTimeline({
   /** Already sorted newest first by the service. */
   sessions: TrainingSession[];
 }) {
+  const { t, tc, locale } = useI18n();
   const years = groupSessionsByYear(sessions);
 
   return (
@@ -42,15 +43,15 @@ export function TrainingTimeline({
             {group.year}
           </h4>
 
-          <ul className="mt-2 border-l border-stone-200 pl-4 sm:pl-5">
+          <ul className="mt-2 border-s border-stone-200 ps-4 sm:ps-5">
             {group.sessions.map((session) => {
-              const distance = formatDistance(session.distanceKm);
-              const speed = formatSpeed(session.avgSpeedKmh);
+              const distance = formatDistance(session.distanceKm, locale);
+              const speed = formatSpeed(session.avgSpeedKmh, locale);
               return (
                 <li key={session.id} className="relative py-1.5 first:pt-0.5 last:pb-0.5">
                   <span
                     aria-hidden="true"
-                    className="bg-pasture-500 absolute top-5 -left-[1.3125rem] size-2 rounded-full ring-4 ring-white sm:-left-[1.5625rem]"
+                    className="bg-pasture-500 absolute -start-[1.3125rem] top-5 size-2 rounded-full ring-4 ring-white sm:-start-[1.5625rem]"
                   />
 
                   <Link
@@ -66,26 +67,26 @@ export function TrainingTimeline({
                             dateTime={session.date}
                             className="text-sm font-medium whitespace-nowrap text-stone-600 tabular-nums"
                           >
-                            {formatShortDate(session.date)}
+                            {formatShortDate(session.date, locale)}
                           </time>
                           <span className="text-sm text-stone-500">
-                            {trainingTypeLabels[session.trainingType]}
+                            {t.training.types[session.trainingType]}
                           </span>
                         </span>
 
                         <span className="mt-0.5 block font-medium break-words">
-                          {session.title}
+                          {tc(session.title)}
                         </span>
 
                         {session.result ? (
                           <span className="mt-0.5 line-clamp-2 block text-sm text-stone-600">
-                            {session.result}
+                            {tc(session.result)}
                           </span>
                         ) : null}
 
                         <span className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-stone-600">
-                          <span>{session.trainerName}</span>
-                          <span>{formatDuration(session.durationMinutes)}</span>
+                          <span>{tc(session.trainerName)}</span>
+                          <span>{formatDuration(session.durationMinutes, locale)}</span>
                           {distance ? <span>{distance}</span> : null}
                           {speed ? <span>{speed}</span> : null}
                           <TrainingSessionStatusBadge status={session.status} />

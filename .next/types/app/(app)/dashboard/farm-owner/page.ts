@@ -1,4 +1,4 @@
-// File: C:\Users\AdminOS\Downloads\smarthorse-web-phase-j3\src\web\smarthorse-web\src\app\(app)\dashboard\farm-owner\page.tsx
+// File: D:\projects\smarthorse\src\web\smarthorse-web\src\app\(app)\dashboard\farm-owner\page.tsx
 import * as entry from '../../../../../../src/app/(app)/dashboard/farm-owner/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

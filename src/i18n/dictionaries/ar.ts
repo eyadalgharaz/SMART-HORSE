@@ -1,4 +1,10 @@
+import { arabicPlural } from '../format';
 import type { Dictionary } from './en';
+import { medicalAr } from './modules/medical.ar';
+import { trainingAr } from './modules/training.ar';
+import { tasksAr } from './modules/tasks.ar';
+import { notificationsAr } from './modules/notifications.ar';
+import { settingsAr } from './modules/settings.ar';
 
 /**
  * Typed against `Dictionary` (the English shape) so a missing key is a
@@ -21,12 +27,150 @@ export const ar: Dictionary = {
     signOut: 'تسجيل الخروج',
     accountMenu: 'قائمة الحساب',
     close: 'إغلاق',
+    savingChanges: 'جارٍ حفظ التغييرات',
+    edit: 'تعديل',
+    view: 'عرض',
+    viewAll: 'عرض الكل',
+    remove: 'إزالة',
+    filters: 'الفلاتر',
+    clearFilters: 'مسح الفلاتر',
+    allHorses: 'كل الخيول',
+    allStatuses: 'كل الحالات',
+    filterByHorse: 'التصفية حسب الحصان',
+    filterByStatus: 'التصفية حسب الحالة',
+    dated: 'الفترة من',
+    dateRangeTo: 'إلى',
+    fromDate: 'من تاريخ',
+    toDate: 'إلى تاريخ',
+    actions: 'إجراءات',
+    optional: 'اختياري.',
+    unassigned: 'غير مُسنَد',
+    notProvided: 'غير مسجَّل',
+    horseNotFoundTitle: 'الحصان غير موجود',
+    horseNotFoundDescription: 'هذا الحصان غير موجود، أو لم يعد ضمن خيول مزرعتك.',
+    horseLoadErrorTitle: 'تعذّر تحميل بيانات هذا الحصان',
+    recordLoadErrorDescription: 'حدث خطأ أثناء تحميل السجل. تحقق من اتصالك وحاول مرة أخرى.',
+    loadingHorse: 'جارٍ تحميل بيانات الحصان',
+    loadingApp: 'جارٍ تحميل SmartHorse',
+    loadingDashboard: 'جارٍ تحميل لوحة التحكم',
+    showPassword: 'إظهار كلمة المرور',
+    hidePassword: 'إخفاء كلمة المرور',
+    notFound: {
+      title: 'هذه الصفحة غير موجودة',
+      description: 'ربما يكون الرابط قديمًا، أو أن هذا القسم غير متاح في SmartHorse بعد.',
+      action: 'الانتقال إلى لوحة التحكم',
+    },
   },
   language: {
     switcherLabel: 'اللغة',
     english: 'English',
     arabic: 'العربية',
     switchTo: (name: string) => `التبديل إلى ${name}`,
+  },
+  time: {
+    today: 'اليوم',
+    tomorrow: 'غدًا',
+    yesterday: 'أمس',
+    inDays: (n: number) =>
+      arabicPlural(n, {
+        one: 'بعد يوم واحد',
+        two: 'بعد يومين',
+        few: 'بعد {n} أيام',
+        many: 'بعد {n} يومًا',
+        other: 'بعد {n} يوم',
+      }),
+    daysAgo: (n: number) =>
+      arabicPlural(n, {
+        one: 'منذ يوم واحد',
+        two: 'منذ يومين',
+        few: 'منذ {n} أيام',
+        many: 'منذ {n} يومًا',
+        other: 'منذ {n} يوم',
+      }),
+    inWeeks: (n: number) =>
+      arabicPlural(n, {
+        one: 'بعد أسبوع',
+        two: 'بعد أسبوعين',
+        few: 'بعد {n} أسابيع',
+        many: 'بعد {n} أسبوعًا',
+        other: 'بعد {n} أسبوع',
+      }),
+    weeksAgo: (n: number) =>
+      arabicPlural(n, {
+        one: 'منذ أسبوع',
+        two: 'منذ أسبوعين',
+        few: 'منذ {n} أسابيع',
+        many: 'منذ {n} أسبوعًا',
+        other: 'منذ {n} أسبوع',
+      }),
+    inMonths: (n: number) =>
+      arabicPlural(n, {
+        one: 'بعد شهر',
+        two: 'بعد شهرين',
+        few: 'بعد {n} أشهر',
+        many: 'بعد {n} شهرًا',
+        other: 'بعد {n} شهر',
+      }),
+    monthsAgo: (n: number) =>
+      arabicPlural(n, {
+        one: 'منذ شهر',
+        two: 'منذ شهرين',
+        few: 'منذ {n} أشهر',
+        many: 'منذ {n} شهرًا',
+        other: 'منذ {n} شهر',
+      }),
+    inYears: (n: number) =>
+      arabicPlural(n, {
+        one: 'بعد سنة',
+        two: 'بعد سنتين',
+        few: 'بعد {n} سنوات',
+        many: 'بعد {n} سنة',
+        other: 'بعد {n} سنة',
+      }),
+    yearsAgo: (n: number) =>
+      arabicPlural(n, {
+        one: 'منذ سنة',
+        two: 'منذ سنتين',
+        few: 'منذ {n} سنوات',
+        many: 'منذ {n} سنة',
+        other: 'منذ {n} سنة',
+      }),
+    dateWithTime: (date: string, time: string) => `${date}، ${time}`,
+    never: 'لم يسجّل الدخول بعد',
+  },
+  meta: {
+    dashboard: 'لوحة التحكم',
+    farmOwnerDashboard: 'لوحة تحكم مالك المزرعة',
+    stableManagerDashboard: 'لوحة تحكم مدير الإسطبل',
+    trainerDashboard: 'لوحة تحكم المدرب',
+    workerDashboard: 'لوحة تحكم العامل',
+    doctorDashboard: 'لوحة تحكم الطبيب البيطري',
+    horses: 'الخيول',
+    addHorse: 'إضافة حصان',
+    horseProfile: 'ملف الحصان',
+    editHorse: 'تعديل بيانات الحصان',
+    health: 'الصحة',
+    horseMedicalHistory: 'السجل الطبي للحصان',
+    addMedicalRecord: 'إضافة سجل طبي',
+    editMedicalRecord: 'تعديل السجل الطبي',
+    training: 'التدريب',
+    horseTrainingProfile: 'ملف تدريب الحصان',
+    addTrainingSession: 'إضافة جلسة تدريب',
+    editTrainingSession: 'تعديل جلسة التدريب',
+    tasks: 'المهام',
+    addTask: 'إضافة مهمة',
+    task: 'تفاصيل المهمة',
+    editTask: 'تعديل المهمة',
+    notifications: 'الإشعارات',
+    settings: 'الإعدادات',
+    farmProfile: 'ملف المزرعة',
+    teamMembers: 'أعضاء الفريق',
+    roles: 'الأدوار والصلاحيات',
+    account: 'الحساب',
+    signIn: 'تسجيل الدخول',
+    createAccount: 'إنشاء حساب',
+    forgotPassword: 'نسيت كلمة المرور',
+    resetPassword: 'تعيين كلمة مرور جديدة',
   },
   shell: {
     openNavigation: 'فتح قائمة التنقل',
@@ -38,7 +182,7 @@ export const ar: Dictionary = {
     },
     nav: {
       dashboard: 'لوحة التحكم',
-      horses: 'الخيل',
+      horses: 'الخيول',
       health: 'الصحة',
       training: 'التدريب',
       tasks: 'المهام',
@@ -85,6 +229,7 @@ export const ar: Dictionary = {
       title: 'إنشاء حسابك',
       description: 'أنشئ حسابك أولاً، ثم يمكنك إضافة مزرعتك مباشرة بعد ذلك.',
       fullNameLabel: 'الاسم الكامل',
+      fullNamePlaceholder: 'ليلى حسن',
       emailLabel: 'البريد الإلكتروني',
       passwordLabel: 'كلمة المرور',
       passwordHint: '8 أحرف على الأقل، تتضمن حرفًا ورقمًا.',
@@ -134,7 +279,7 @@ export const ar: Dictionary = {
   },
   pages: {
     horses: {
-      title: 'الخيل',
+      title: 'الخيول',
       description: 'جميع خيول المزرعة، ببياناتها وأوراقها الثبوتية.',
       errorTitle: 'تعذّر تحميل بيانات الخيول',
       errorDescription: 'حدث خطأ أثناء تحميل قائمة الخيول. تحقق من اتصالك وحاول مرة أخرى.',
@@ -236,7 +381,7 @@ export const ar: Dictionary = {
     },
     summary: {
       sectionTitle: 'ملخص المزرعة',
-      totalHorses: 'إجمالي الخيل',
+      totalHorses: 'إجمالي الخيول',
       upcomingVisits: 'الزيارات القادمة',
       vaccinations: 'التطعيمات',
       pendingTasks: 'المهام المعلّقة',
@@ -252,7 +397,7 @@ export const ar: Dictionary = {
       noneDueToday: 'لا شيء مستحق اليوم',
     },
     activity: {
-      sectionTitle: 'نشاط الخيل',
+      sectionTitle: 'نشاط الخيول',
       sectionDescription: 'الجلسات المسجّلة لخيولك',
       periodLabel: 'آخر 7 أيام',
       sessionsIn: (sessionsWord: string, period: string) => `${sessionsWord} خلال ${period}`,
@@ -340,7 +485,7 @@ export const ar: Dictionary = {
     editHorseDescription: (name: string) => `تحديث بيانات ${name} وأوراقه الثبوتية.`,
     loadingHorse: 'جارٍ تحميل بيانات الحصان',
     nameLabel: 'الاسم',
-    backToHorses: 'العودة إلى الخيل',
+    backToHorses: 'العودة إلى الخيول',
     searchLabel: 'ابحث عن حصان',
     searchPlaceholder: 'ابحث بالاسم أو السلالة أو الرقم',
     filters: 'الفلاتر',
@@ -361,6 +506,104 @@ export const ar: Dictionary = {
       status: 'الحالة',
       actions: 'إجراءات',
       viewHorse: (name: string) => `عرض ${name}`,
+    },
+    loadingHorses: 'جارٍ تحميل الخيول',
+    count: (shown: number, total: number) => {
+      if (shown === total) {
+        return arabicPlural(total, {
+          zero: 'لا توجد خيول',
+          one: 'حصان واحد',
+          two: 'حصانان',
+          few: '{n} خيول',
+          many: '{n} حصانًا',
+          other: '{n} حصان',
+        });
+      }
+      return `عرض ${shown} من أصل ${arabicPlural(total, {
+        one: 'حصان واحد',
+        two: 'حصانين',
+        few: '{n} خيول',
+        many: '{n} حصانًا',
+        other: '{n} حصان',
+      })}`;
+    },
+    age: {
+      years: (n: number) =>
+        arabicPlural(n, {
+          zero: 'أقل من سنة',
+          one: 'سنة واحدة',
+          two: 'سنتان',
+          few: '{n} سنوات',
+          many: '{n} سنة',
+          other: '{n} سنة',
+        }),
+      months: (n: number) =>
+        arabicPlural(n, {
+          zero: 'أقل من شهر',
+          one: 'شهر واحد',
+          two: 'شهران',
+          few: '{n} أشهر',
+          many: '{n} شهرًا',
+          other: '{n} شهر',
+        }),
+    },
+    noMatchTitle: 'لا توجد خيول مطابقة لبحثك',
+    noMatchDescription: 'جرّب اسمًا أو رقمًا مختلفًا، أو وسّع نطاق الفلاتر.',
+    addHorse: 'إضافة حصان',
+    addHorseDescription: 'سجّل بيانات حصان جديد وأوراقه الثبوتية.',
+    addingHorse: 'جارٍ إضافة الحصان',
+    saveError: 'تعذّر حفظ بيانات هذا الحصان.',
+    sections: {
+      basicInfo: 'المعلومات الأساسية',
+      identification: 'بيانات التعريف',
+      ownership: 'الملكية',
+      photo: 'الصورة',
+    },
+    fields: {
+      name: 'الاسم',
+      breed: 'السلالة',
+      gender: 'الجنس',
+      color: 'اللون',
+      birthDate: 'تاريخ الميلاد',
+      age: 'العمر',
+      status: 'الحالة',
+      registrationNumber: 'رقم التسجيل',
+      microchipNumber: 'رقم الشريحة الإلكترونية',
+      owner: 'المالك',
+      currentOwner: 'المالك الحالي',
+    },
+    hints: {
+      identification: 'اتركها فارغة إذا لم تُصدر بعد.',
+      microchip: '15 رقمًا، كما هو مطبوع في شهادة الشريحة.',
+      owner: 'اتركه فارغًا إذا لم يُحدَّد مالك لهذا الحصان بعد.',
+    },
+    placeholders: {
+      name: 'مثال: ليلى',
+      breed: 'مثال: عربي أصيل',
+      color: 'مثال: أشهب',
+      registration: 'مثال: AHA-284193',
+      microchip: 'مثال: 985141002734611',
+      owner: 'مثال: أحمد حسن',
+    },
+    owned: 'له مالك',
+    ownershipNote: 'سيتوفر نقل الملكية وسجلها مع وحدة الملكية.',
+    photo: {
+      add: 'إضافة صورة',
+      change: 'تغيير الصورة',
+      hint: 'بصيغة JPG أو PNG. تُحفظ على هذا الجهاز فقط حاليًا.',
+    },
+    records: {
+      title: 'السجلات',
+      description: 'تُربط هذه السجلات بالحصان مع إطلاق كل وحدة.',
+      health: 'السجلات الصحية',
+      training: 'سجلات التدريب',
+      tasks: 'المهام',
+      files: 'الملفات والمستندات',
+      notYetAvailable: 'غير متاح بعد',
+    },
+    saved: {
+      created: 'تمت إضافة الحصان بنجاح.',
+      updated: 'تم تحديث بيانات الحصان بنجاح.',
     },
   },
   horseNames: {
@@ -389,4 +632,9 @@ export const ar: Dictionary = {
     Basim: 'باسم',
     Aurora: 'فجر',
   } as Record<string, string>,
+  medical: medicalAr,
+  training: trainingAr,
+  tasks: tasksAr,
+  notifications: notificationsAr,
+  settings: settingsAr,
 };

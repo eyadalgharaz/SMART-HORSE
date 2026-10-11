@@ -2,7 +2,7 @@
 
 import { CalendarClock, ClipboardList, Warehouse } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useTranslations } from '@/i18n';
+import { useI18n } from '@/i18n';
 import { greetingFor } from '../format';
 import { fadeInUp } from './layout';
 
@@ -35,9 +35,11 @@ export function DashboardHeader({
   summary = null,
   now = new Date(),
 }: DashboardHeaderProps) {
-  const t = useTranslations();
+  const { t, tc, locale } = useI18n();
   const greetingWord = greetingFor(now, t);
-  const greeting = firstName ? `${greetingWord}, ${firstName}` : greetingWord;
+  const separator = locale === 'ar' ? '، ' : ', ';
+  const greeting = firstName ? `${greetingWord}${separator}${firstName}` : greetingWord;
+  const farmLabel = farmName ? tc(farmName) : null;
 
   return (
     <div
@@ -53,7 +55,7 @@ export function DashboardHeader({
         <div className="min-w-0">
           <h2 className="text-xl font-semibold sm:text-2xl">{greeting}</h2>
           <p className="text-sand-100 mt-1.5">
-            {farmName ? t.dashboard.heroSummary(farmName) : null}
+            {farmLabel ? t.dashboard.heroSummary(farmLabel) : null}
           </p>
 
           {summary ? (
@@ -78,7 +80,7 @@ export function DashboardHeader({
           <p className="border-sand-50/20 bg-forest-900/40 inline-flex max-w-full items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium backdrop-blur-sm">
             <Warehouse className="text-brass-400 size-4 shrink-0" aria-hidden="true" />
             <span className="sr-only">{t.dashboard.farmLabelSrPrefix}</span>
-            <span className="truncate">{farmName}</span>
+            <span className="truncate">{farmLabel}</span>
           </p>
         ) : null}
       </div>

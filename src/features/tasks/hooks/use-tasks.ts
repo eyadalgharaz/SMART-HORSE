@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useI18n } from '@/i18n/use-i18n';
 import { assigneesOf, filterTasks, horsesOf } from '../format';
 import { taskService } from '../task-service';
 import { taskKeys } from '../query-keys';
@@ -19,8 +20,9 @@ export function useTasks(filters: TaskFilters) {
     queryFn: () => taskService.listTasks(),
   });
 
+  const { tc } = useI18n();
   const all = useMemo(() => query.data ?? [], [query.data]);
-  const tasks = useMemo(() => filterTasks(all, filters), [all, filters]);
+  const tasks = useMemo(() => filterTasks(all, filters, tc), [all, filters, tc]);
   const horses = useMemo(() => horsesOf(all), [all]);
   const assignees = useMemo(() => assigneesOf(all), [all]);
 

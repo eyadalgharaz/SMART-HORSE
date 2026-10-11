@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useFormErrors } from '@/hooks/use-form-errors';
+import { sortByLabel, useI18n } from '@/i18n';
+import { restoreSource } from '@/i18n/translate';
 import { toDateInputValue } from '@/features/horses/format';
 import {
   trainingSessionFormSchema,
@@ -16,7 +18,7 @@ import {
   type TrainingSessionFormValues,
 } from '../schemas';
 import type { Trainer, TrainingProgram, TrainingSession, TrainingSessionInput } from '../types';
-import { sessionStatusOptions, trainingTypeOptions } from '../vocabulary';
+import { sessionStatusValues, trainingTypeValues } from '../vocabulary';
 
 /**
  * Add and Edit are the same form: same fields, same validation, same layout.
@@ -100,7 +102,14 @@ export function TrainingSessionForm({
   onSubmit,
   onCancelHref,
 }: TrainingSessionFormProps) {
-  const defaults = defaultsFrom(session);
+  const { t, tc, tm, locale } = useI18n();
+  const f = t.training.form;
+  const stored = defaultsFrom(session);
+  // Free-text fields show stored demo content in the active language; an
+  // unchanged field saves its stored value (see `restoreSource`).
+  const textFields = ['title', 'result', 'trainerNotes', 'notes'] as const;
+  const defaults: TrainingSessionFormValues = { ...stored };
+  for (const field of textFields) defaults[field] = stored[field] ? tc(stored[field]) : '';
   const { errors, validate } = useFormErrors(trainingSessionFormSchema);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -110,7 +119,12 @@ export function TrainingSessionForm({
     setFormError(null);
 
     const data = new FormData(event.currentTarget);
-    const read = (name: string) => String(data.get(name) ?? '');
+    const read = (name: string) => {
+      const value = String(data.get(name) ?? '');
+      return (textFields as readonly string[]).includes(name)
+        ? restoreSource(value, stored[name as (typeof textFields)[number]], tc)
+        : value;
+    };
 
     const values = validate({
       programId: read('programId'),
@@ -134,66 +148,59 @@ export function TrainingSessionForm({
     try {
       await onSubmit(toTrainingSessionInput(values, horseId, trainers, session));
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Could not save this session.');
+      setFormError(error instanceof Error ? error.message : f.saveError);
       setSubmitting(false);
     }
   }
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
-      {formError ? <Alert tone="error">{formError}</Alert> : null}
+      {formError ? <Alert tone="error">{tm(formError)}</Alert> : null}
 
       <Card>
-        <CardHeader
-          title="Session information"
-          description={`This session belongs to ${horseName}.`}
-          headingLevel={3}
-        />
+        <CardHeader title={f.sessionInfo} description={f.belongsTo(horseName)} headingLevel={3} />
         <CardBody className="grid gap-4 sm:grid-cols-2">
-          <FormField
-            label="Training program"
-            hint="Optional — leave blank for a standalone session."
-          >
+          <FormField label={f.program} hint={f.programHint}>
             <Select name="programId" defaultValue={defaults.programId}>
-              <option value="">No program</option>
+              <option value="">{f.noProgram}</option>
               {programs.map((program) => (
                 <option key={program.id} value={program.id}>
-                  {program.name}
+                  {tc(program.name)}
                 </option>
               ))}
             </Select>
           </FormField>
 
-          <FormField label="Training type" error={errors.trainingType} required>
+          <FormField label={f.type} error={errors.trainingType} required>
             <Select name="trainingType" defaultValue={defaults.trainingType}>
-              {trainingTypeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {trainingTypeValues.map((value) => (
+                <option key={value} value={value}>
+                  {t.training.types[value]}
                 </option>
               ))}
             </Select>
           </FormField>
 
           <div className="sm:col-span-2">
-            <FormField label="Session title" error={errors.title} required>
+            <FormField label={f.title} error={errors.title} required>
               <Input
                 name="title"
                 defaultValue={defaults.title}
-                placeholder="e.g. Steady-state trail conditioning"
+                placeholder={f.titlePlaceholder}
                 maxLength={120}
               />
             </FormField>
           </div>
 
-          <FormField label="Date" error={errors.date} required>
+          <FormField label={f.date} error={errors.date} required>
             <Input type="date" name="date" defaultValue={defaults.date} />
           </FormField>
 
-          <FormField label="Start time" error={errors.startTime} required>
+          <FormField label={f.startTime} error={errors.startTime} required>
             <Input type="time" name="startTime" defaultValue={defaults.startTime} />
           </FormField>
 
-          <FormField label="Duration (minutes)" error={errors.durationMinutes} required>
+          <FormField label={f.duration} error={errors.durationMinutes} required>
             <Input
               type="number"
               inputMode="numeric"
@@ -204,24 +211,24 @@ export function TrainingSessionForm({
             />
           </FormField>
 
-          <FormField label="Trainer" error={errors.trainerId} required>
+          <FormField label={f.trainer} error={errors.trainerId} required>
             <Select name="trainerId" defaultValue={defaults.trainerId}>
               <option value="" disabled>
-                Choose a trainer
+                {f.chooseTrainer}
               </option>
-              {trainers.map((trainer) => (
+              {sortByLabel(trainers, (trainer) => tc(trainer.name), locale).map((trainer) => (
                 <option key={trainer.id} value={trainer.id}>
-                  {trainer.name}
+                  {tc(trainer.name)}
                 </option>
               ))}
             </Select>
           </FormField>
 
-          <FormField label="Status" error={errors.status} required>
+          <FormField label={f.status} error={errors.status} required>
             <Select name="status" defaultValue={defaults.status}>
-              {sessionStatusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {sessionStatusValues.map((value) => (
+                <option key={value} value={value}>
+                  {t.training.sessionStatuses[value]}
                 </option>
               ))}
             </Select>
@@ -230,13 +237,9 @@ export function TrainingSessionForm({
       </Card>
 
       <Card>
-        <CardHeader
-          title="Performance"
-          description="Leave a metric blank if it was not tracked for this session."
-          headingLevel={3}
-        />
+        <CardHeader title={f.performance} description={f.performanceDescription} headingLevel={3} />
         <CardBody className="grid gap-4 sm:grid-cols-3">
-          <FormField label="Distance (km)" error={errors.distanceKm}>
+          <FormField label={f.distance} error={errors.distanceKm}>
             <Input
               type="number"
               inputMode="decimal"
@@ -244,11 +247,11 @@ export function TrainingSessionForm({
               min={0}
               name="distanceKm"
               defaultValue={defaults.distanceKm}
-              placeholder="e.g. 8.4"
+              placeholder={f.distancePlaceholder}
             />
           </FormField>
 
-          <FormField label="Average speed (km/h)" error={errors.avgSpeedKmh}>
+          <FormField label={f.avgSpeed} error={errors.avgSpeedKmh}>
             <Input
               type="number"
               inputMode="decimal"
@@ -256,11 +259,11 @@ export function TrainingSessionForm({
               min={0}
               name="avgSpeedKmh"
               defaultValue={defaults.avgSpeedKmh}
-              placeholder="e.g. 12.0"
+              placeholder={f.avgSpeedPlaceholder}
             />
           </FormField>
 
-          <FormField label="Maximum speed (km/h)" error={errors.maxSpeedKmh}>
+          <FormField label={f.maxSpeed} error={errors.maxSpeedKmh}>
             <Input
               type="number"
               inputMode="decimal"
@@ -268,22 +271,18 @@ export function TrainingSessionForm({
               min={0}
               name="maxSpeedKmh"
               defaultValue={defaults.maxSpeedKmh}
-              placeholder="Optional"
+              placeholder={f.maxSpeedPlaceholder}
             />
           </FormField>
 
           <div className="sm:col-span-3">
-            <FormField
-              label="Result"
-              error={errors.result}
-              hint="A short, descriptive outcome — not a score."
-            >
+            <FormField label={f.result} error={errors.result} hint={f.resultHint}>
               <Textarea
                 name="result"
                 defaultValue={defaults.result}
                 rows={2}
                 maxLength={300}
-                placeholder="e.g. Held pace comfortably; recovery time back to baseline within 10 minutes."
+                placeholder={f.resultPlaceholder}
               />
             </FormField>
           </div>
@@ -291,25 +290,25 @@ export function TrainingSessionForm({
       </Card>
 
       <Card>
-        <CardHeader title="Notes" headingLevel={3} />
+        <CardHeader title={f.notes} headingLevel={3} />
         <CardBody className="grid gap-4 sm:grid-cols-2">
-          <FormField label="Trainer notes" error={errors.trainerNotes}>
+          <FormField label={f.trainerNotes} error={errors.trainerNotes}>
             <Textarea
               name="trainerNotes"
               defaultValue={defaults.trainerNotes}
               rows={3}
               maxLength={1000}
-              placeholder="Guidance for next time, cues, anything the next session should build on."
+              placeholder={f.trainerNotesPlaceholder}
             />
           </FormField>
 
-          <FormField label="Additional notes" error={errors.notes}>
+          <FormField label={f.additionalNotes} error={errors.notes}>
             <Textarea
               name="notes"
               defaultValue={defaults.notes}
               rows={3}
               maxLength={1000}
-              placeholder="Conditions, equipment, anything else worth recording."
+              placeholder={f.additionalNotesPlaceholder}
             />
           </FormField>
         </CardBody>
@@ -317,7 +316,7 @@ export function TrainingSessionForm({
 
       <div className="flex flex-wrap justify-end gap-2">
         <ButtonLink href={onCancelHref} variant="secondary">
-          Cancel
+          {t.common.cancel}
         </ButtonLink>
         <Button type="submit" loading={submitting}>
           {submitting ? submittingLabel : submitLabel}

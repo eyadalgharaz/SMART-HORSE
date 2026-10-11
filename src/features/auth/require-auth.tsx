@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { Spinner } from '@/components/ui/spinner';
+import { useTranslations } from '@/i18n';
 import { useAuth } from './auth-provider';
 
 /**
@@ -14,6 +15,7 @@ import { useAuth } from './auth-provider';
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { status } = useAuth();
   const router = useRouter();
+  const t = useTranslations();
 
   useEffect(() => {
     if (status === 'anonymous') router.replace('/login');
@@ -22,7 +24,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   if (status !== 'authenticated') {
     return (
       <div className="text-pasture-500 flex min-h-dvh items-center justify-center">
-        <Spinner label="Loading SmartHorse" className="size-6" />
+        <Spinner label={t.common.loadingApp} className="size-6" />
       </div>
     );
   }

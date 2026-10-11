@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useFormErrors } from '@/hooks/use-form-errors';
+import { useI18n } from '@/i18n';
+import { restoreSource } from '@/i18n/translate';
 import { toDateInputValue } from '@/features/horses/format';
 import {
   medicalRecordFormSchema,
@@ -16,7 +18,7 @@ import {
   type MedicalRecordFormValues,
 } from '../schemas';
 import type { MedicalAttachment, MedicalRecord, MedicalRecordInput } from '../types';
-import { recordStatusOptions, recordTypeOptions } from '../vocabulary';
+import { recordStatusValues, recordTypeValues } from '../vocabulary';
 import { MedicalAttachmentField } from './medical-attachment-field';
 
 /**
@@ -91,7 +93,21 @@ export function MedicalForm({
   onSubmit,
   onCancelHref,
 }: MedicalFormProps) {
-  const defaults = defaultsFrom(record);
+  const { t, tc, tm } = useI18n();
+  const stored = defaultsFrom(record);
+  // Text fields show stored demo content in the active language; see `restoreSource`.
+  const textFields = [
+    'veterinarian',
+    'title',
+    'diagnosis',
+    'treatment',
+    'medication',
+    'notes',
+    'followUpNotes',
+    'vaccineName',
+  ] as const;
+  const defaults: MedicalRecordFormValues = { ...stored };
+  for (const field of textFields) defaults[field] = stored[field] ? tc(stored[field]) : '';
   const { errors, validate } = useFormErrors(medicalRecordFormSchema);
   const [recordType, setRecordType] = useState(defaults.recordType);
   const [attachments, setAttachments] = useState<MedicalAttachment[]>(record?.attachments ?? []);
@@ -99,13 +115,20 @@ export function MedicalForm({
   const [submitting, setSubmitting] = useState(false);
 
   const isVaccination = recordType === 'vaccination';
+  const f = t.medical.fields;
+  const m = t.medical.form;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
 
     const data = new FormData(event.currentTarget);
-    const read = (name: string) => String(data.get(name) ?? '');
+    const read = (name: string) => {
+      const value = String(data.get(name) ?? '');
+      return (textFields as readonly string[]).includes(name)
+        ? restoreSource(value, stored[name as (typeof textFields)[number]], tc)
+        : value;
+    };
 
     const values = validate({
       recordType: read('recordType'),
@@ -128,23 +151,19 @@ export function MedicalForm({
     try {
       await onSubmit(toMedicalRecordInput(values, attachments, record));
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Could not save this record.');
+      setFormError(error instanceof Error ? error.message : m.saveError);
       setSubmitting(false);
     }
   }
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
-      {formError ? <Alert tone="error">{formError}</Alert> : null}
+      {formError ? <Alert tone="error">{tm(formError)}</Alert> : null}
 
       <Card>
-        <CardHeader
-          title="Basic information"
-          description={`This record belongs to ${horseName}.`}
-          headingLevel={3}
-        />
+        <CardHeader title={m.basicInfo} description={m.belongsTo(horseName)} headingLevel={3} />
         <CardBody className="grid gap-4 sm:grid-cols-2">
-          <FormField label="Record type" error={errors.recordType} required>
+          <FormField label={f.recordType} error={errors.recordType} required>
             <Select
               name="recordType"
               value={recordType}
@@ -152,42 +171,33 @@ export function MedicalForm({
                 setRecordType(event.target.value as MedicalRecordFormValues['recordType'])
               }
             >
-              {recordTypeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {recordTypeValues.map((value) => (
+                <option key={value} value={value}>
+                  {t.medical.recordTypes[value]}
                 </option>
               ))}
             </Select>
           </FormField>
 
-          <FormField label="Status" error={errors.status} required>
+          <FormField label={f.status} error={errors.status} required>
             <Select name="status" defaultValue={defaults.status}>
-              {recordStatusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {recordStatusValues.map((value) => (
+                <option key={value} value={value}>
+                  {t.medical.statuses[value]}
                 </option>
               ))}
             </Select>
           </FormField>
 
-          <FormField
-            label="Date"
-            error={errors.date}
-            hint="Use a future date only for a scheduled visit."
-            required
-          >
+          <FormField label={f.date} error={errors.date} hint={m.dateHint} required>
             <Input type="date" name="date" defaultValue={defaults.date} />
           </FormField>
 
-          <FormField
-            label="Veterinarian"
-            error={errors.veterinarian}
-            hint="Leave blank if no vet attended."
-          >
+          <FormField label={f.veterinarian} error={errors.veterinarian} hint={m.vetHint}>
             <Input
               name="veterinarian"
               defaultValue={defaults.veterinarian}
-              placeholder="e.g. Dr. Sara Nabil"
+              placeholder={m.vetPlaceholder}
               maxLength={80}
             />
           </FormField>
@@ -196,17 +206,17 @@ export function MedicalForm({
 
       <Card>
         <CardHeader
-          title="Clinical information"
-          description="Only the title is required — leave the rest blank if it does not apply."
+          title={t.medical.detail.clinical}
+          description={m.clinicalDescription}
           headingLevel={3}
         />
         <CardBody className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <FormField label="Title" error={errors.title} required>
+            <FormField label={f.title} error={errors.title} required>
               <Input
                 name="title"
                 defaultValue={defaults.title}
-                placeholder="e.g. Routine health examination"
+                placeholder={m.titlePlaceholder}
                 maxLength={120}
               />
             </FormField>
@@ -214,19 +224,19 @@ export function MedicalForm({
 
           {isVaccination ? (
             <>
-              <FormField label="Vaccine" error={errors.vaccineName} required>
+              <FormField label={f.vaccine} error={errors.vaccineName} required>
                 <Input
                   name="vaccineName"
                   defaultValue={defaults.vaccineName}
-                  placeholder="e.g. Equine influenza"
+                  placeholder={m.vaccinePlaceholder}
                   maxLength={80}
                 />
               </FormField>
 
               <FormField
-                label="Next dose due"
+                label={f.nextDoseDue}
                 error={errors.vaccineNextDueDate}
-                hint="Leave blank if no further dose is planned."
+                hint={m.nextDoseHint}
               >
                 <Input
                   type="date"
@@ -237,44 +247,44 @@ export function MedicalForm({
             </>
           ) : null}
 
-          <FormField label="Diagnosis" error={errors.diagnosis}>
+          <FormField label={f.diagnosis} error={errors.diagnosis}>
             <Input
               name="diagnosis"
               defaultValue={defaults.diagnosis}
-              placeholder="e.g. Mild suspensory strain"
+              placeholder={m.diagnosisPlaceholder}
               maxLength={200}
             />
           </FormField>
 
-          <FormField label="Medication" error={errors.medication}>
+          <FormField label={f.medication} error={errors.medication}>
             <Input
               name="medication"
               defaultValue={defaults.medication}
-              placeholder="e.g. Phenylbutazone 2 g twice daily"
+              placeholder={m.medicationPlaceholder}
               maxLength={200}
             />
           </FormField>
 
           <div className="sm:col-span-2">
-            <FormField label="Treatment" error={errors.treatment}>
+            <FormField label={f.treatment} error={errors.treatment}>
               <Textarea
                 name="treatment"
                 defaultValue={defaults.treatment}
                 rows={3}
                 maxLength={1000}
-                placeholder="What was done, and what happens next."
+                placeholder={m.treatmentPlaceholder}
               />
             </FormField>
           </div>
 
           <div className="sm:col-span-2">
-            <FormField label="Notes" error={errors.notes}>
+            <FormField label={f.notes} error={errors.notes}>
               <Textarea
                 name="notes"
                 defaultValue={defaults.notes}
                 rows={3}
                 maxLength={2000}
-                placeholder="Observations, readings, anything the next vet should know."
+                placeholder={m.notesPlaceholder}
               />
             </FormField>
           </div>
@@ -283,23 +293,23 @@ export function MedicalForm({
 
       <Card>
         <CardHeader
-          title="Follow-up"
-          description="Set a date and this record appears in upcoming medical events."
+          title={t.medical.detail.followUp}
+          description={m.followUpDescription}
           headingLevel={3}
         />
         <CardBody className="grid gap-4 sm:grid-cols-2">
-          <FormField label="Follow-up date" error={errors.followUpDate}>
+          <FormField label={f.followUpDate} error={errors.followUpDate}>
             <Input type="date" name="followUpDate" defaultValue={defaults.followUpDate} />
           </FormField>
 
           <div className="sm:col-span-2">
-            <FormField label="Follow-up notes" error={errors.followUpNotes}>
+            <FormField label={f.followUpNotes} error={errors.followUpNotes}>
               <Textarea
                 name="followUpNotes"
                 defaultValue={defaults.followUpNotes}
                 rows={2}
                 maxLength={500}
-                placeholder="What the follow-up should check."
+                placeholder={m.followUpPlaceholder}
               />
             </FormField>
           </div>
@@ -307,7 +317,7 @@ export function MedicalForm({
       </Card>
 
       <Card>
-        <CardHeader title="Attachments" headingLevel={3} />
+        <CardHeader title={t.medical.detail.attachments} headingLevel={3} />
         <CardBody>
           <MedicalAttachmentField attachments={attachments} onChange={setAttachments} />
         </CardBody>
@@ -315,7 +325,7 @@ export function MedicalForm({
 
       <div className="flex flex-wrap justify-end gap-2">
         <ButtonLink href={onCancelHref} variant="secondary">
-          Cancel
+          {t.common.cancel}
         </ButtonLink>
         <Button type="submit" loading={submitting}>
           {submitting ? submittingLabel : submitLabel}

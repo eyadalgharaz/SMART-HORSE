@@ -6,7 +6,7 @@ import { Card, CardBody } from '@/components/ui/card';
 import { ErrorState } from '@/components/ui/error-state';
 import { emptyHorseFilters } from '@/features/horses/types';
 import { useHorses } from '@/features/horses/use-horses';
-import { farmTypeLabels } from '../vocabulary';
+import { useTranslations } from '@/i18n';
 import { emptyTeamMemberFilters } from '../types';
 import { useFarm, useUpdateFarm } from '../hooks/use-farm';
 import { useTeamMembers } from '../hooks/use-team-members';
@@ -26,24 +26,23 @@ export function FarmProfilePage() {
   const { horses, isPending: horsesPending } = useHorses(emptyHorseFilters);
   const { allMembers, isPending: teamPending } = useTeamMembers(emptyTeamMemberFilters);
   const { mutateAsync } = useUpdateFarm();
+  const t = useTranslations();
+  const fp = t.settings.farm;
 
   const activeMembers = allMembers.filter((member) => member.status !== 'suspended').length;
 
   return (
-    <SettingsSectionLayout
-      title="Farm Profile"
-      description="Your farm's information, contact details and profile."
-    >
+    <SettingsSectionLayout title={t.settings.sections.farm.title} description={fp.pageDescription}>
       <div className="space-y-4">
         <SettingsSavedMessage />
 
         {isError ? (
           <ErrorState
-            title="We couldn't load the farm profile"
-            description="Something went wrong while loading the farm profile. Check your connection and try again."
+            title={fp.loadErrorTitle}
+            description={fp.loadErrorDescription}
             action={
               <Button variant="secondary" onClick={() => void refetch()} loading={isRefetching}>
-                Try again
+                {t.common.tryAgain}
               </Button>
             }
           />
@@ -54,24 +53,24 @@ export function FarmProfilePage() {
             <Card>
               <CardBody className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <div>
-                  <p className="text-sm text-stone-600">Farm status</p>
-                  <p className="mt-1 font-medium">Active</p>
+                  <p className="text-sm text-stone-600">{fp.farmStatus}</p>
+                  <p className="mt-1 font-medium">{fp.active}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-stone-600">Team members</p>
+                  <p className="text-sm text-stone-600">{fp.teamMembers}</p>
                   <p className="mt-1 font-medium tabular-nums">
                     {teamPending ? '—' : activeMembers}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-stone-600">Total horses</p>
+                  <p className="text-sm text-stone-600">{fp.totalHorses}</p>
                   <p className="mt-1 font-medium tabular-nums">
                     {horsesPending ? '—' : horses.length}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-stone-600">Farm type</p>
-                  <p className="mt-1 font-medium">{farmTypeLabels[farm.type]}</p>
+                  <p className="text-sm text-stone-600">{fp.farmType}</p>
+                  <p className="mt-1 font-medium">{t.settings.farmTypes[farm.type]}</p>
                 </div>
               </CardBody>
             </Card>

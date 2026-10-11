@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useI18n } from '@/i18n/use-i18n';
 import { breedsOf, filterHorses } from './format';
 import { horseService } from './horse-service';
 import type { HorseFilters } from './types';
@@ -21,8 +22,9 @@ export function useHorses(filters: HorseFilters) {
     queryFn: () => horseService.listHorses(),
   });
 
+  const { tc } = useI18n();
   const all = useMemo(() => query.data ?? [], [query.data]);
-  const horses = useMemo(() => filterHorses(all, filters), [all, filters]);
+  const horses = useMemo(() => filterHorses(all, filters, tc), [all, filters, tc]);
   const breeds = useMemo(() => breedsOf(all), [all]);
 
   return {

@@ -1,8 +1,10 @@
+'use client';
+
 import type { LucideIcon } from 'lucide-react';
 import { FileText, FlaskConical, ImageIcon, ScanLine } from 'lucide-react';
+import { useI18n } from '@/i18n';
 import { formatFileSize, formatRecordDate } from '../format';
 import type { AttachmentType, MedicalAttachment } from '../types';
-import { attachmentTypeLabels } from '../vocabulary';
 
 /**
  * Files attached to a record, shown as metadata only.
@@ -22,8 +24,10 @@ const icons: Record<AttachmentType, LucideIcon> = {
 };
 
 export function MedicalAttachmentList({ attachments }: { attachments: MedicalAttachment[] }) {
+  const { t, locale } = useI18n();
+
   if (attachments.length === 0) {
-    return <p className="text-sm text-stone-600">No attachments on this record.</p>;
+    return <p className="text-sm text-stone-600">{t.medical.detail.noAttachments}</p>;
   }
 
   return (
@@ -39,10 +43,15 @@ export function MedicalAttachmentList({ attachments }: { attachments: MedicalAtt
               <Icon className="size-4" aria-hidden="true" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">{attachment.fileName}</p>
+              <p className="truncate text-sm font-medium" dir="auto">
+                {attachment.fileName}
+              </p>
               <p className="text-sm text-stone-600">
-                {attachmentTypeLabels[attachment.type]} · {formatFileSize(attachment.sizeBytes)} ·{' '}
-                <time dateTime={attachment.addedAt}>{formatRecordDate(attachment.addedAt)}</time>
+                {t.medical.attachmentTypes[attachment.type]} ·{' '}
+                {formatFileSize(attachment.sizeBytes, locale)} ·{' '}
+                <time dateTime={attachment.addedAt}>
+                  {formatRecordDate(attachment.addedAt, locale)}
+                </time>
               </p>
             </div>
           </li>

@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { PageHeader } from '@/components/layout/page-header';
 import { useHorse } from '@/features/horses/use-horse';
+import { useI18n } from '@/i18n';
 import { useMedicalRecord } from '../hooks/use-medical-record';
 import { useUpdateMedicalRecord } from '../hooks/use-save-medical-record';
 import { MedicalForm } from './medical-form';
@@ -28,6 +29,7 @@ export function MedicalEditPage({ horseId, recordId }: { horseId: string; record
   const { record, isPending, notFound, isError, isRefetching, refetch } =
     useMedicalRecord(recordId);
   const { mutateAsync } = useUpdateMedicalRecord(recordId);
+  const { t, tc } = useI18n();
 
   const loading = isPending || horseQuery.isPending;
   const missing = notFound || horseQuery.notFound || (record && record.horseId !== horseId);
@@ -35,7 +37,7 @@ export function MedicalEditPage({ horseId, recordId }: { horseId: string; record
   if (loading) {
     return (
       <>
-        <PageHeader title="Edit medical record" />
+        <PageHeader title={t.medical.edit.title} />
         <MedicalFormSkeleton />
       </>
     );
@@ -44,12 +46,14 @@ export function MedicalEditPage({ horseId, recordId }: { horseId: string; record
   if (missing || !record || !horseQuery.horse) {
     return (
       <>
-        <PageHeader title="Edit medical record" />
+        <PageHeader title={t.medical.edit.title} />
         <EmptyState
-          title="Medical record not found"
-          description="This record doesn't exist, or it belongs to another horse."
+          title={t.medical.edit.notFoundTitle}
+          description={t.medical.edit.notFoundDescription}
           action={
-            <ButtonLink href={`/medical/horses/${horseId}`}>Back to medical history</ButtonLink>
+            <ButtonLink href={`/medical/horses/${horseId}`}>
+              {t.medical.backToMedicalHistory}
+            </ButtonLink>
           }
         />
       </>
@@ -59,13 +63,13 @@ export function MedicalEditPage({ horseId, recordId }: { horseId: string; record
   if (isError || horseQuery.isError) {
     return (
       <>
-        <PageHeader title="Edit medical record" />
+        <PageHeader title={t.medical.edit.title} />
         <ErrorState
-          title="We couldn't load this medical record"
-          description="Something went wrong while loading the record. Check your connection and try again."
+          title={t.medical.edit.loadErrorTitle}
+          description={t.common.recordLoadErrorDescription}
           action={
             <Button variant="secondary" onClick={() => void refetch()} loading={isRefetching}>
-              Try again
+              {t.common.tryAgain}
             </Button>
           }
         />
@@ -76,14 +80,14 @@ export function MedicalEditPage({ horseId, recordId }: { horseId: string; record
   return (
     <>
       <PageHeader
-        title="Edit medical record"
-        description={`Update this record for ${horseQuery.horse.name}.`}
+        title={t.medical.edit.title}
+        description={t.medical.edit.description(tc(horseQuery.horse.name))}
       />
       <MedicalForm
         record={record}
-        horseName={horseQuery.horse.name}
-        submitLabel="Save changes"
-        submittingLabel="Saving changes"
+        horseName={tc(horseQuery.horse.name)}
+        submitLabel={t.common.saveChanges}
+        submittingLabel={t.common.savingChanges}
         onCancelHref={`/medical/horses/${horseId}`}
         onSubmit={async (input) => {
           await mutateAsync(input);

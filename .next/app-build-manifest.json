@@ -36,30 +36,40 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(app)/horses/page.js"
     ],
-    "/(app)/training/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/training/page.js"
-    ],
     "/(app)/medical/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(app)/medical/page.js"
+    ],
+    "/(app)/training/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(app)/training/page.js"
     ],
     "/(app)/tasks/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(app)/tasks/page.js"
     ],
-    "/(app)/notifications/page": [
+    "/(auth)/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(app)/notifications/page.js"
+      "static/chunks/app/(auth)/layout.js"
     ],
-    "/(app)/settings/page": [
+    "/(auth)/login/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(app)/settings/page.js"
+      "static/chunks/app/(auth)/login/page.js"
+    ],
+    "/(auth)/register/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(auth)/register/page.js"
+    ],
+    "/(app)/horses/new/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(app)/horses/new/page.js"
     ]
   }
 }

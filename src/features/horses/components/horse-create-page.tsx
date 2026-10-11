@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/layout/page-header';
+import { useTranslations } from '@/i18n';
 import { useCreateHorse } from '../use-save-horse';
 import { HorseForm } from './horse-form';
 import { savedUrl } from './saved-message';
@@ -10,13 +11,14 @@ import { savedUrl } from './saved-message';
 export function HorseCreatePage() {
   const router = useRouter();
   const { mutateAsync } = useCreateHorse();
+  const t = useTranslations();
 
   return (
     <>
-      <PageHeader title="Add horse" description="Record a new horse's identity and papers." />
+      <PageHeader title={t.horses.addHorse} description={t.horses.addHorseDescription} />
       <HorseForm
-        submitLabel="Add horse"
-        submittingLabel="Adding horse"
+        submitLabel={t.horses.addHorse}
+        submittingLabel={t.horses.addingHorse}
         onCancelHref="/horses"
         onSubmit={async (input) => {
           await mutateAsync(input);

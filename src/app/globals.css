@@ -64,6 +64,17 @@
     ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
     'Noto Sans', sans-serif;
 
+  /*
+   * Arabic — system fonts with a full Arabic character set, chosen per
+   * platform (Segoe UI on Windows, SF Arabic via system-ui on Apple,
+   * Noto on Android/Linux). Same no-webfont policy as the Latin stack above.
+   * Applied only when the document language is Arabic, so English is
+   * untouched.
+   */
+  --font-arabic:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Noto Sans Arabic', 'Noto Naskh Arabic',
+    'Geeza Pro', 'Arabic UI Text', Tahoma, Arial, sans-serif;
+
   --radius-card: 0.5rem;
 }
 
@@ -128,4 +139,41 @@
 
 @utility sh-field {
   @apply text-ink w-full rounded-md border border-stone-300 bg-white px-3 py-2 placeholder:text-stone-500 disabled:cursor-not-allowed disabled:bg-stone-100;
+}
+
+/*
+ * Arabic / RTL refinements. Layout mirroring itself comes from `dir="rtl"`
+ * plus logical properties (`ms-*`, `ps-*`, `start-*`, `text-start`) in the
+ * components; these rules only cover what the script itself needs.
+ * Unlayered on purpose, so they take precedence over Tailwind utilities.
+ */
+html:lang(ar) body {
+  font-family: var(--font-arabic);
+  line-height: 1.7;
+}
+
+/* Arabic letters join; tightened tracking breaks the joins and hurts legibility. */
+html:lang(ar) :where(h1, h2, h3, h4, .tracking-tight, .tracking-tighter) {
+  letter-spacing: normal;
+}
+
+/*
+ * Native selects draw their chevron as a background image; keep it on the
+ * inline-end side in both directions (the padding already uses `pe-8`).
+ */
+select.sh-field {
+  background-position: right 0.5rem center;
+}
+[dir='rtl'] select.sh-field {
+  background-position: left 0.5rem center;
+}
+
+/*
+ * Email addresses, phone numbers and web addresses are always read
+ * left-to-right, even inside an Arabic form — but stay aligned with the
+ * Arabic labels above them.
+ */
+[dir='rtl'] input:is([type='email'], [type='tel'], [type='url']) {
+  direction: ltr;
+  text-align: right;
 }

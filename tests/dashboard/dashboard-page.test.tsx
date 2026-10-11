@@ -120,7 +120,7 @@ describe('DashboardPage in Arabic', () => {
     await screen.findByText('المهام القادمة', undefined, LOAD_TIMEOUT);
 
     // Section headings.
-    for (const name of ['نشاط الخيل', 'المهام القادمة', 'الحالة الصحية', 'الإشعارات الأخيرة']) {
+    for (const name of ['نشاط الخيول', 'المهام القادمة', 'الحالة الصحية', 'الإشعارات الأخيرة']) {
       expect(screen.getByRole('heading', { name })).toBeInTheDocument();
     }
 

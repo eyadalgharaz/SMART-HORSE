@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useI18n } from '@/i18n/use-i18n';
 import { filterTeamMembers, sortMembersNewestFirst } from '../format';
 import { teamService } from '../team-service';
 import { teamKeys } from '../query-keys';
@@ -19,10 +20,11 @@ export function useTeamMembers(filters: TeamMemberFilters) {
     queryFn: () => teamService.listMembers(),
   });
 
+  const { tc } = useI18n();
   const all = useMemo(() => query.data ?? [], [query.data]);
   const members = useMemo(
-    () => sortMembersNewestFirst(filterTeamMembers(all, filters)),
-    [all, filters],
+    () => sortMembersNewestFirst(filterTeamMembers(all, filters, tc)),
+    [all, filters, tc],
   );
 
   return {

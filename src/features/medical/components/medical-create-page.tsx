@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { PageHeader } from '@/components/layout/page-header';
 import { useHorse } from '@/features/horses/use-horse';
+import { useI18n } from '@/i18n';
 import { useCreateMedicalRecord } from '../hooks/use-save-medical-record';
 import { MedicalForm } from './medical-form';
 import { MedicalFormSkeleton } from './medical-skeletons';
@@ -23,11 +24,12 @@ export function MedicalCreatePage({ horseId }: { horseId: string }) {
   const router = useRouter();
   const { horse, isPending, notFound, isError, isRefetching, refetch } = useHorse(horseId);
   const { mutateAsync } = useCreateMedicalRecord(horseId);
+  const { t, tc } = useI18n();
 
   if (isPending) {
     return (
       <>
-        <PageHeader title="Add medical record" />
+        <PageHeader title={t.medical.create.title} />
         <MedicalFormSkeleton />
       </>
     );
@@ -36,11 +38,11 @@ export function MedicalCreatePage({ horseId }: { horseId: string }) {
   if (notFound || !horse) {
     return (
       <>
-        <PageHeader title="Add medical record" />
+        <PageHeader title={t.medical.create.title} />
         <EmptyState
-          title="Horse not found"
-          description="This horse doesn't exist, or it is no longer part of your farm."
-          action={<ButtonLink href="/medical">Back to health</ButtonLink>}
+          title={t.common.horseNotFoundTitle}
+          description={t.common.horseNotFoundDescription}
+          action={<ButtonLink href="/medical">{t.medical.backToHealth}</ButtonLink>}
         />
       </>
     );
@@ -49,13 +51,13 @@ export function MedicalCreatePage({ horseId }: { horseId: string }) {
   if (isError) {
     return (
       <>
-        <PageHeader title="Add medical record" />
+        <PageHeader title={t.medical.create.title} />
         <ErrorState
-          title="We couldn't load this horse"
-          description="Something went wrong while loading the record. Check your connection and try again."
+          title={t.common.horseLoadErrorTitle}
+          description={t.common.recordLoadErrorDescription}
           action={
             <Button variant="secondary" onClick={() => void refetch()} loading={isRefetching}>
-              Try again
+              {t.common.tryAgain}
             </Button>
           }
         />
@@ -66,13 +68,13 @@ export function MedicalCreatePage({ horseId }: { horseId: string }) {
   return (
     <>
       <PageHeader
-        title="Add medical record"
-        description={`Record a checkup, vaccination, treatment or injury for ${horse.name}.`}
+        title={t.medical.create.title}
+        description={t.medical.create.description(tc(horse.name))}
       />
       <MedicalForm
-        horseName={horse.name}
-        submitLabel="Save record"
-        submittingLabel="Saving record"
+        horseName={tc(horse.name)}
+        submitLabel={t.medical.create.submit}
+        submittingLabel={t.medical.create.submitting}
         onCancelHref={`/medical/horses/${horse.id}`}
         onSubmit={async (input) => {
           await mutateAsync(input);

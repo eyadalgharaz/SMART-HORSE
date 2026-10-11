@@ -7,14 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { FormField } from '@/components/ui/form-field';
 import { Select } from '@/components/ui/select';
+import { useI18n } from '@/i18n';
 import { useUpdateAccountPreferences } from '../hooks/use-preferences';
 import type { AccountPreferences } from '../types';
-import {
-  dateFormatValues,
-  dateFormatLabels,
-  timeFormatValues,
-  timeFormatLabels,
-} from '../vocabulary';
+import { dateFormatValues, timeFormatValues } from '../vocabulary';
 import { savedUrl } from './saved-message';
 
 /**
@@ -29,6 +25,8 @@ export function AccountPreferencesForm({ preferences }: { preferences: AccountPr
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const { mutateAsync } = useUpdateAccountPreferences();
+  const { t, tm } = useI18n();
+  const a = t.settings.account;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -46,7 +44,7 @@ export function AccountPreferencesForm({ preferences }: { preferences: AccountPr
       });
       router.push(savedUrl('/settings/account', 'preferences'));
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Could not save your preferences.');
+      setFormError(error instanceof Error ? error.message : a.preferencesError);
     } finally {
       setSubmitting(false);
     }
@@ -54,37 +52,37 @@ export function AccountPreferencesForm({ preferences }: { preferences: AccountPr
 
   return (
     <Card>
-      <CardHeader title="Preferences" headingLevel={3} />
+      <CardHeader title={a.preferences} headingLevel={3} />
       <CardBody>
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
-          {formError ? <Alert tone="error">{formError}</Alert> : null}
+          {formError ? <Alert tone="error">{tm(formError)}</Alert> : null}
 
           <div className="grid gap-4 sm:grid-cols-3">
-            <FormField label="Email notifications">
+            <FormField label={a.emailNotifications}>
               <Select
                 name="emailNotifications"
                 defaultValue={preferences.emailNotifications ? 'on' : 'off'}
               >
-                <option value="on">On</option>
-                <option value="off">Off</option>
+                <option value="on">{a.on}</option>
+                <option value="off">{a.off}</option>
               </Select>
             </FormField>
 
-            <FormField label="Date format">
+            <FormField label={a.dateFormat}>
               <Select name="dateFormat" defaultValue={preferences.dateFormat}>
                 {dateFormatValues.map((value) => (
                   <option key={value} value={value}>
-                    {dateFormatLabels[value]}
+                    {a.dateFormats[value]}
                   </option>
                 ))}
               </Select>
             </FormField>
 
-            <FormField label="Time format">
+            <FormField label={a.timeFormat}>
               <Select name="timeFormat" defaultValue={preferences.timeFormat}>
                 {timeFormatValues.map((value) => (
                   <option key={value} value={value}>
-                    {timeFormatLabels[value]}
+                    {a.timeFormats[value]}
                   </option>
                 ))}
               </Select>
@@ -93,7 +91,7 @@ export function AccountPreferencesForm({ preferences }: { preferences: AccountPr
 
           <div className="flex justify-end">
             <Button type="submit" loading={submitting}>
-              {submitting ? 'Saving preferences' : 'Save preferences'}
+              {submitting ? a.savingPreferences : a.savePreferences}
             </Button>
           </div>
         </form>

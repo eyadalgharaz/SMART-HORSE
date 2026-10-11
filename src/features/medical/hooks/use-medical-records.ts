@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useI18n } from '@/i18n/use-i18n';
 import { filterMedicalRecords, horsesOf } from '../format';
 import { medicalService } from '../medical-service';
 import { medicalKeys } from '../query-keys';
@@ -19,8 +20,9 @@ export function useMedicalRecords(filters: MedicalRecordFilters) {
     queryFn: () => medicalService.listRecords(),
   });
 
+  const { tc } = useI18n();
   const all = useMemo(() => query.data ?? [], [query.data]);
-  const records = useMemo(() => filterMedicalRecords(all, filters), [all, filters]);
+  const records = useMemo(() => filterMedicalRecords(all, filters, tc), [all, filters, tc]);
   const horses = useMemo(() => horsesOf(all), [all]);
 
   return {

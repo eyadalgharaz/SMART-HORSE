@@ -1,4 +1,7 @@
+'use client';
+
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslations } from '@/i18n';
 
 /**
  * Loading placeholders that mirror the loaded layout block for block, so
@@ -20,10 +23,11 @@ export function MedicalSummarySkeleton() {
   );
 }
 
-export function MedicalListSkeleton({ label = 'Loading medical records' }: { label?: string }) {
+export function MedicalListSkeleton({ label }: { label?: string }) {
+  const t = useTranslations();
   return (
     <div role="status" aria-busy="true">
-      <span className="sr-only">{label}</span>
+      <span className="sr-only">{label ?? t.medical.loading.records}</span>
 
       <div className="rounded-card hidden divide-y divide-stone-200 border border-stone-200 bg-white lg:block">
         {Array.from({ length: 6 }, (_, index) => (
@@ -55,9 +59,10 @@ export function MedicalListSkeleton({ label = 'Loading medical records' }: { lab
 }
 
 export function MedicalTimelineSkeleton() {
+  const t = useTranslations();
   return (
     <div role="status" aria-busy="true" className="space-y-4">
-      <span className="sr-only">Loading medical history</span>
+      <span className="sr-only">{t.medical.loading.history}</span>
       {Array.from({ length: 5 }, (_, index) => (
         <div key={index} className="flex gap-3">
           <Skeleton className="size-8 shrink-0 rounded-md" />
@@ -73,9 +78,10 @@ export function MedicalTimelineSkeleton() {
 }
 
 export function MedicalFormSkeleton() {
+  const t = useTranslations();
   return (
     <div role="status" aria-busy="true" className="space-y-4">
-      <span className="sr-only">Loading medical record</span>
+      <span className="sr-only">{t.medical.loading.record}</span>
       {Array.from({ length: 3 }, (_, index) => (
         <div key={index} className="rounded-card border border-stone-200 bg-white p-5">
           <Skeleton className="h-5 w-40" />

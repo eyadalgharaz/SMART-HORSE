@@ -6,7 +6,7 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { PageHeader } from '@/components/layout/page-header';
-import { useTranslations } from '@/i18n';
+import { useI18n, useTabArrowKeys } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { formatRecordCount, formatVaccinationCount, horsesOf, summarizeOverview } from '../format';
 import { useHorseHealth } from '../hooks/use-horse-health';
@@ -44,29 +44,18 @@ import { VaccinationFilterBar, VaccinationList } from './vaccination-list';
 
 type Tab = 'records' | 'vaccinations' | 'upcoming';
 
-const tabs: { id: Tab; label: string }[] = [
-  { id: 'records', label: 'Records' },
-  { id: 'vaccinations', label: 'Vaccinations' },
-  { id: 'upcoming', label: 'Upcoming' },
-];
+const tabIds: readonly Tab[] = ['records', 'vaccinations', 'upcoming'];
+const tabElementId = (id: Tab) => `tab-${id}`;
 
 function Tabs({ current, onChange }: { current: Tab; onChange: (tab: Tab) => void }) {
-  function onKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-    const index = tabs.findIndex((tab) => tab.id === current);
-    const delta = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
-    if (delta === 0) return;
-    event.preventDefault();
-    const next = tabs[(index + delta + tabs.length) % tabs.length];
-    if (next) {
-      onChange(next.id);
-      document.getElementById(`tab-${next.id}`)?.focus();
-    }
-  }
+  const { t } = useI18n();
+  const onKeyDown = useTabArrowKeys(tabIds, current, onChange, tabElementId);
+  const tabs = tabIds.map((id) => ({ id, label: t.medical.overview.tabs[id] }));
 
   return (
     <div
       role="tablist"
-      aria-label="Medical sections"
+      aria-label={t.medical.overview.tabsLabel}
       onKeyDown={onKeyDown}
       className="flex gap-1 overflow-x-auto border-b border-stone-200"
     >
@@ -98,7 +87,8 @@ function Tabs({ current, onChange }: { current: Tab; onChange: (tab: Tab) => voi
 }
 
 export function MedicalOverviewPage() {
-  const t = useTranslations();
+  const { t, locale } = useI18n();
+  const o = t.medical.overview;
   const [tab, setTab] = useState<Tab>('records');
   const [filters, setFilters] = useState<MedicalRecordFilters>(emptyMedicalRecordFilters);
   const [vaccinationFilters, setVaccinationFilters] =
@@ -149,10 +139,7 @@ export function MedicalOverviewPage() {
         {isPending ? <MedicalSummarySkeleton /> : <MedicalSummary summary={farmSummary} />}
 
         {totalCount === 0 && !isPending ? (
-          <EmptyState
-            title="No medical records yet"
-            description="Open a horse's profile and add its first medical record to start building its history."
-          />
+          <EmptyState title={o.emptyTitle} description={o.emptyDescription} />
         ) : (
           <div>
             <Tabs current={tab} onChange={setTab} />
@@ -178,19 +165,19 @@ export function MedicalOverviewPage() {
                 ) : (
                   <>
                     <p role="status" className="text-sm text-stone-600">
-                      {formatRecordCount(records.length, totalCount)}
+                      {formatRecordCount(records.length, totalCount, locale)}
                     </p>
 
                     {records.length === 0 ? (
                       <EmptyState
-                        title="No records match your search"
-                        description="Try a different term, or widen the filters and date range."
+                        title={o.noMatchTitle}
+                        description={o.noMatchDescription}
                         action={
                           <Button
                             variant="secondary"
                             onClick={() => setFilters(emptyMedicalRecordFilters)}
                           >
-                            Clear filters
+                            {t.common.clearFilters}
                           </Button>
                         }
                       />
@@ -218,28 +205,28 @@ export function MedicalOverviewPage() {
                 />
 
                 {isPending ? (
-                  <MedicalListSkeleton label="Loading vaccinations" />
+                  <MedicalListSkeleton label={o.loadingVaccinations} />
                 ) : vaccinationTotal === 0 ? (
                   <EmptyState
-                    title="No vaccinations found"
-                    description="Vaccinations appear here once a vaccination record is added to a horse."
+                    title={o.vaccinationsEmptyTitle}
+                    description={o.vaccinationsEmptyDescription}
                   />
                 ) : (
                   <>
                     <p role="status" className="text-sm text-stone-600">
-                      {formatVaccinationCount(vaccinations.length, vaccinationTotal)}
+                      {formatVaccinationCount(vaccinations.length, vaccinationTotal, locale)}
                     </p>
 
                     {vaccinations.length === 0 ? (
                       <EmptyState
-                        title="No vaccinations match these filters"
-                        description="Try another horse or status."
+                        title={o.vaccinationsNoMatchTitle}
+                        description={o.vaccinationsNoMatchDescription}
                         action={
                           <Button
                             variant="secondary"
                             onClick={() => setVaccinationFilters(emptyVaccinationFilters)}
                           >
-                            Clear filters
+                            {t.common.clearFilters}
                           </Button>
                         }
                       />
@@ -260,15 +247,10 @@ export function MedicalOverviewPage() {
               className="pt-4"
             >
               <Card>
-                <CardHeader
-                  title="Upcoming medical events"
-                  description="Booked visits, follow-ups and doses that are coming due."
-                />
+                <CardHeader title={o.upcomingTitle} description={o.upcomingDescription} />
                 <CardBody>
                   {events.length === 0 ? (
-                    <p className="text-sm text-stone-600">
-                      No upcoming medical events. Nothing is due or booked right now.
-                    </p>
+                    <p className="text-sm text-stone-600">{o.upcomingEmpty}</p>
                   ) : (
                     <UpcomingMedicalEvents events={events} />
                   )}

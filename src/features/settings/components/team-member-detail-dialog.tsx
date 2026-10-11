@@ -11,7 +11,7 @@ import { Select } from '@/components/ui/select';
 import { formatLastActive, formatSettingsDate } from '../format';
 import { useSetTeamMemberStatus, useUpdateTeamMemberRole } from '../hooks/use-team-mutations';
 import type { FarmRole, TeamMember } from '../types';
-import { useRoleOptions } from '@/i18n';
+import { useI18n, useRoleOptions } from '@/i18n';
 import { savedUrl } from './saved-message';
 import { TeamMemberStatusBadge } from './team-status-badge';
 
@@ -38,6 +38,9 @@ export function TeamMemberDetailDialog({
   const [actionError, setActionError] = useState<string | null>(null);
   const { mutateAsync: saveRole, isPending: savingRole } = useUpdateTeamMemberRole();
   const { mutateAsync: saveStatus, isPending: savingStatus } = useSetTeamMemberStatus();
+  const { t, tc, tm, locale } = useI18n();
+  const d = t.settings.memberDialog;
+  const f = t.settings.fields;
 
   if (!member) return null;
   const currentRole = role ?? member.role;
@@ -51,7 +54,7 @@ export function TeamMemberDetailDialog({
       onClose();
       router.push(savedUrl('/settings/team', 'role'));
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : 'Could not update this role.');
+      setActionError(error instanceof Error ? error.message : d.roleError);
     }
   }
 
@@ -63,46 +66,54 @@ export function TeamMemberDetailDialog({
       onClose();
       router.push(savedUrl('/settings/team', next === 'suspended' ? 'suspended' : 'reactivated'));
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : 'Could not update this member.');
+      setActionError(error instanceof Error ? error.message : d.statusError);
     }
   }
 
   return (
-    <Modal open={Boolean(member)} onClose={onClose} title="Team member">
+    <Modal open={Boolean(member)} onClose={onClose} title={d.title}>
       <div className="space-y-5">
-        {actionError ? <Alert tone="error">{actionError}</Alert> : null}
+        {actionError ? <Alert tone="error">{tm(actionError)}</Alert> : null}
 
         <div className="flex items-center gap-3">
-          <Avatar name={member.fullName} className="size-12 text-base" />
+          <Avatar name={tc(member.fullName)} className="size-12 text-base" />
           <div className="min-w-0">
-            <p className="truncate font-semibold">{member.fullName}</p>
-            <p className="truncate text-sm text-stone-600">{member.email}</p>
+            <p className="truncate font-semibold">{tc(member.fullName)}</p>
+            <p className="truncate text-sm text-stone-600" dir="ltr">
+              {member.email}
+            </p>
           </div>
         </div>
 
         <dl className="grid grid-cols-2 gap-x-3 gap-y-3 text-sm">
           <div>
-            <dt className="text-stone-600">Status</dt>
+            <dt className="text-stone-600">{f.status}</dt>
             <dd className="mt-1">
               <TeamMemberStatusBadge status={member.status} />
             </dd>
           </div>
           <div>
-            <dt className="text-stone-600">Phone</dt>
-            <dd className="mt-1 font-medium">{member.phone ?? 'Not provided'}</dd>
+            <dt className="text-stone-600">{f.phone}</dt>
+            <dd className="mt-1 font-medium">
+              {member.phone ? <span dir="ltr">{member.phone}</span> : t.common.notProvided}
+            </dd>
           </div>
           <div>
-            <dt className="text-stone-600">{member.status === 'invited' ? 'Invited' : 'Joined'}</dt>
-            <dd className="mt-1 font-medium">{formatSettingsDate(member.joinedAt)}</dd>
+            <dt className="text-stone-600">
+              {member.status === 'invited' ? t.settings.team.invited : t.settings.team.joined}
+            </dt>
+            <dd className="mt-1 font-medium">{formatSettingsDate(member.joinedAt, locale)}</dd>
           </div>
           <div>
-            <dt className="text-stone-600">Last active</dt>
-            <dd className="mt-1 font-medium">{formatLastActive(member.lastActiveAt)}</dd>
+            <dt className="text-stone-600">{t.settings.team.lastActive}</dt>
+            <dd className="mt-1 font-medium">
+              {formatLastActive(member.lastActiveAt, undefined, locale)}
+            </dd>
           </div>
         </dl>
 
         <div className="border-t border-stone-200 pt-4">
-          <FormField label="Role">
+          <FormField label={f.role}>
             <Select
               value={currentRole}
               onChange={(event) => setRole(event.target.value as FarmRole)}
@@ -122,7 +133,7 @@ export function TeamMemberDetailDialog({
               loading={savingRole}
               onClick={() => void handleSaveRole()}
             >
-              Save role
+              {d.saveRole}
             </Button>
           ) : null}
         </div>
@@ -134,16 +145,16 @@ export function TeamMemberDetailDialog({
               loading={savingStatus}
               onClick={() => void handleStatus('suspended')}
             >
-              Suspend member
+              {d.suspend}
             </Button>
           ) : null}
           {member.status === 'suspended' ? (
             <Button loading={savingStatus} onClick={() => void handleStatus('active')}>
-              Reactivate member
+              {d.reactivate}
             </Button>
           ) : null}
           <Button variant="danger" onClick={() => onRequestRemove(member)}>
-            Remove member
+            {d.remove}
           </Button>
         </div>
       </div>

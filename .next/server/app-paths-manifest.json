@@ -1,11 +1,8 @@
 {
-  "/page": "app/page.js",
+  "/(app)/dashboard/farm-owner/page": "app/(app)/dashboard/farm-owner/page.js",
   "/(app)/horses/page": "app/(app)/horses/page.js",
   "/(app)/training/page": "app/(app)/training/page.js",
-  "/(app)/dashboard/farm-owner/page": "app/(app)/dashboard/farm-owner/page.js",
-  "/(app)/tasks/page": "app/(app)/tasks/page.js",
-  "/(app)/dashboard/page": "app/(app)/dashboard/page.js",
-  "/(app)/settings/page": "app/(app)/settings/page.js",
-  "/(app)/notifications/page": "app/(app)/notifications/page.js",
-  "/(app)/medical/page": "app/(app)/medical/page.js"
+  "/(app)/horses/new/page": "app/(app)/horses/new/page.js",
+  "/(app)/medical/page": "app/(app)/medical/page.js",
+  "/(app)/tasks/page": "app/(app)/tasks/page.js"
 }

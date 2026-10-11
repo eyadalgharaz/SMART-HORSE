@@ -8,7 +8,7 @@ import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { useFormErrors } from '@/hooks/use-form-errors';
-import { useTranslations } from '@/i18n';
+import { useI18n } from '@/i18n';
 import { useAuth } from '../auth-provider';
 import { registerSchema } from '../schemas';
 import { RoleSelect } from './role-select';
@@ -19,7 +19,7 @@ export function RegisterForm() {
   const { errors, validate } = useFormErrors(registerSchema);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const t = useTranslations();
+  const { t, tm } = useI18n();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,10 +52,14 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
-      {formError ? <Alert tone="error">{formError}</Alert> : null}
+      {formError ? <Alert tone="error">{tm(formError)}</Alert> : null}
 
       <FormField label={t.auth.register.fullNameLabel} error={errors.fullName} required>
-        <Input name="fullName" autoComplete="name" placeholder="Layla Hassan" />
+        <Input
+          name="fullName"
+          autoComplete="name"
+          placeholder={t.auth.register.fullNamePlaceholder}
+        />
       </FormField>
 
       <FormField label={t.auth.register.emailLabel} error={errors.email} required>

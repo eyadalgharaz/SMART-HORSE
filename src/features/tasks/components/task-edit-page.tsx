@@ -5,6 +5,7 @@ import { Button, ButtonLink } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { PageHeader } from '@/components/layout/page-header';
+import { useI18n } from '@/i18n';
 import { emptyHorseFilters } from '@/features/horses/types';
 import { useHorses } from '@/features/horses/use-horses';
 import { useAssignees } from '../hooks/use-assignees';
@@ -25,13 +26,14 @@ export function TaskEditPage({ taskId }: { taskId: string }) {
   const { horses, isPending: horsesPending } = useHorses(emptyHorseFilters);
   const { assignees, isPending: assigneesPending } = useAssignees();
   const { mutateAsync } = useUpdateTask(taskId);
+  const { t, tc } = useI18n();
 
   const loading = isPending || horsesPending || assigneesPending;
 
   if (loading) {
     return (
       <>
-        <PageHeader title="Edit task" />
+        <PageHeader title={t.tasks.edit.title} />
         <TaskFormSkeleton />
       </>
     );
@@ -40,11 +42,11 @@ export function TaskEditPage({ taskId }: { taskId: string }) {
   if (notFound || !task) {
     return (
       <>
-        <PageHeader title="Edit task" />
+        <PageHeader title={t.tasks.edit.title} />
         <EmptyState
-          title="Task not found"
-          description="This task doesn't exist, or it has been removed."
-          action={<ButtonLink href="/tasks">Back to tasks</ButtonLink>}
+          title={t.tasks.detail.notFoundTitle}
+          description={t.tasks.detail.notFoundDescription}
+          action={<ButtonLink href="/tasks">{t.tasks.backToTasks}</ButtonLink>}
         />
       </>
     );
@@ -53,13 +55,13 @@ export function TaskEditPage({ taskId }: { taskId: string }) {
   if (isError) {
     return (
       <>
-        <PageHeader title="Edit task" />
+        <PageHeader title={t.tasks.edit.title} />
         <ErrorState
-          title="We couldn't load this task"
-          description="Something went wrong while loading the task. Check your connection and try again."
+          title={t.tasks.detail.loadErrorTitle}
+          description={t.tasks.detail.loadErrorDescription}
           action={
             <Button variant="secondary" onClick={() => void refetch()} loading={isRefetching}>
-              Try again
+              {t.common.tryAgain}
             </Button>
           }
         />
@@ -69,13 +71,16 @@ export function TaskEditPage({ taskId }: { taskId: string }) {
 
   return (
     <>
-      <PageHeader title="Edit task" description={`Update "${task.title}".`} />
+      <PageHeader
+        title={t.tasks.edit.title}
+        description={t.tasks.edit.description(tc(task.title))}
+      />
       <TaskForm
         task={task}
         horses={horses}
         assignees={assignees}
-        submitLabel="Save changes"
-        submittingLabel="Saving changes"
+        submitLabel={t.common.saveChanges}
+        submittingLabel={t.common.savingChanges}
         onCancelHref={`/tasks/${taskId}`}
         onSubmit={async (input) => {
           await mutateAsync(input);

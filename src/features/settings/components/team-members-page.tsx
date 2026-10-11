@@ -5,6 +5,7 @@ import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
+import { useLocale, useTranslations } from '@/i18n';
 import { formatMemberCount } from '../format';
 import { useTeamMembers } from '../hooks/use-team-members';
 import { emptyTeamMemberFilters, type TeamMember, type TeamMemberFilters } from '../types';
@@ -32,15 +33,18 @@ export function TeamMembersPage() {
 
   const { members, totalCount, isPending, isError, isRefetching, refetch } =
     useTeamMembers(filters);
+  const t = useTranslations();
+  const tl = t.settings.team;
+  const { locale } = useLocale();
 
   return (
     <SettingsSectionLayout
-      title="Team Members"
-      description="Manage people who have access to this farm."
+      title={t.settings.sections.team.title}
+      description={tl.pageDescription}
       action={
         <Button onClick={() => setInviting(true)}>
           <UserPlus className="size-4" aria-hidden="true" />
-          Invite member
+          {tl.invite}
         </Button>
       }
     >
@@ -49,22 +53,22 @@ export function TeamMembersPage() {
 
         {isError ? (
           <ErrorState
-            title="We couldn't load your team"
-            description="Something went wrong while loading the team. Check your connection and try again."
+            title={tl.loadErrorTitle}
+            description={tl.loadErrorDescription}
             action={
               <Button variant="secondary" onClick={() => void refetch()} loading={isRefetching}>
-                Try again
+                {t.common.tryAgain}
               </Button>
             }
           />
         ) : totalCount === 0 && !isPending ? (
           <EmptyState
-            title="No team members yet"
-            description="Invite your first team member to start managing farm access."
+            title={tl.emptyTitle}
+            description={tl.emptyDescription}
             action={
               <Button onClick={() => setInviting(true)}>
                 <UserPlus className="size-4" aria-hidden="true" />
-                Invite member
+                {tl.invite}
               </Button>
             }
           />
@@ -81,19 +85,19 @@ export function TeamMembersPage() {
             ) : (
               <>
                 <p role="status" className="text-sm text-stone-600">
-                  {formatMemberCount(members.length, totalCount)}
+                  {formatMemberCount(members.length, totalCount, locale)}
                 </p>
 
                 {members.length === 0 ? (
                   <EmptyState
-                    title="No members match your filters"
-                    description="Try a different search term, or clear the filters."
+                    title={tl.noMatchTitle}
+                    description={tl.noMatchDescription}
                     action={
                       <Button
                         variant="secondary"
                         onClick={() => setFilters(emptyTeamMemberFilters)}
                       >
-                        Clear filters
+                        {t.common.clearFilters}
                       </Button>
                     }
                   />

@@ -1,5 +1,9 @@
 import { formatRelativeTime } from '@/features/dashboard/format';
-import { toDateInputValue } from '@/features/horses/format';
+import { matchesAnyField, toDateInputValue } from '@/features/horses/format';
+import { formatRelativeTime as formatRelativeTimeLocalized } from '@/features/notifications/format';
+import { getDictionary } from '@/i18n/dictionaries';
+import { formatDate } from '@/i18n/format';
+import type { Locale } from '@/i18n/locale';
 import type { Role, TeamMember, TeamMemberFilters } from './types';
 
 /**
@@ -13,32 +17,33 @@ export { toDateInputValue };
 /* Dates                                                                */
 /* ------------------------------------------------------------------ */
 
-/** "18 Sep 2026" */
-export function formatSettingsDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
+/** "18 Sep 2026" ("18 سبتمبر 2026" in Arabic) */
+export function formatSettingsDate(iso: string, locale: Locale = 'en'): string {
+  return formatDate(iso, locale);
 }
 
 /** "3 hours ago" for a recent moment, otherwise "Never" for a member who has not signed in. */
 export function formatLastActive(
   iso: string | null,
   reference: string = new Date().toISOString(),
+  locale: Locale = 'en',
 ): string {
-  if (iso === null) return 'Never';
-  return formatRelativeTime(iso, reference);
+  if (iso === null) return getDictionary(locale).time.never;
+  return locale === 'en'
+    ? formatRelativeTime(iso, reference)
+    : formatRelativeTimeLocalized(iso, reference, locale);
 }
 
 /* ------------------------------------------------------------------ */
 /* Team member search and filters                                       */
 /* ------------------------------------------------------------------ */
 
-function matchesSearch(member: TeamMember, search: string): boolean {
-  const term = search.trim().toLowerCase();
-  if (!term) return true;
-  return member.fullName.toLowerCase().includes(term) || member.email.toLowerCase().includes(term);
+function matchesSearch(
+  member: TeamMember,
+  search: string,
+  localize?: (text: string) => string,
+): boolean {
+  return matchesAnyField([member.fullName, member.email], search, localize);
 }
 
 /**
@@ -46,10 +51,14 @@ function matchesSearch(member: TeamMember, search: string): boolean {
  * of each other. When the API arrives this rule moves into the query string;
  * the hook keeps the same signature, so no component changes.
  */
-export function filterTeamMembers(members: TeamMember[], filters: TeamMemberFilters): TeamMember[] {
+export function filterTeamMembers(
+  members: TeamMember[],
+  filters: TeamMemberFilters,
+  localize?: (text: string) => string,
+): TeamMember[] {
   return members.filter(
     (member) =>
-      matchesSearch(member, filters.search) &&
+      matchesSearch(member, filters.search, localize) &&
       (filters.role === null || member.role === filters.role) &&
       (filters.status === null || member.status === filters.status),
   );
@@ -64,9 +73,8 @@ export function activeTeamFilterCount(filters: TeamMemberFilters): number {
 }
 
 /** "8 members", "1 member", or "Showing 3 of 8 members" while filters are on. */
-export function formatMemberCount(shown: number, total: number): string {
-  const noun = total === 1 ? 'member' : 'members';
-  return shown === total ? `${total} ${noun}` : `Showing ${shown} of ${total} ${noun}`;
+export function formatMemberCount(shown: number, total: number, locale: Locale = 'en'): string {
+  return getDictionary(locale).settings.team.count(shown, total);
 }
 
 /** Newest-invited/joined first. */

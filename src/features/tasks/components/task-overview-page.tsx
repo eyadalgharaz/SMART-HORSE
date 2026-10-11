@@ -6,7 +6,7 @@ import { ButtonLink, Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { PageHeader } from '@/components/layout/page-header';
-import { useTranslations } from '@/i18n';
+import { useI18n, useTabArrowKeys } from '@/i18n';
 import { cn } from '@/lib/cn';
 import {
   formatTaskCount,
@@ -32,17 +32,14 @@ import { TasksSavedMessage } from './saved-message';
  * above the list, so it can never disagree with what's shown.
  */
 
-const tabs: { id: TaskTab; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'today', label: 'Today' },
-  { id: 'upcoming', label: 'Upcoming' },
-  { id: 'overdue', label: 'Overdue' },
-  { id: 'completed', label: 'Completed' },
-];
+const tabIds: readonly TaskTab[] = ['all', 'today', 'upcoming', 'overdue', 'completed'];
+const tabElementId = (id: TaskTab) => `task-tab-${id}`;
 
 export function TasksOverviewPage({ initialHorseId = null }: { initialHorseId?: string | null }) {
-  const t = useTranslations();
+  const { t, locale } = useI18n();
+  const o = t.tasks.overview;
   const [tab, setTab] = useState<TaskTab>('all');
+  const tabs = tabIds.map((id) => ({ id, label: o.tabs[id] }));
   const [filters, setFilters] = useState<TaskFilters>({
     ...emptyTaskFilters,
     horseId: initialHorseId,
@@ -64,17 +61,7 @@ export function TasksOverviewPage({ initialHorseId = null }: { initialHorseId?: 
   const visible = useMemo(() => sortTasksByUrgency(tasksForTab(tasks, tab)), [tasks, tab]);
   const tabTotal = useMemo(() => tasksForTab(allTasks, tab).length, [allTasks, tab]);
 
-  function onKeyDownTabs(event: React.KeyboardEvent<HTMLDivElement>) {
-    const index = tabs.findIndex((entry) => entry.id === tab);
-    const delta = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
-    if (delta === 0) return;
-    event.preventDefault();
-    const next = tabs[(index + delta + tabs.length) % tabs.length];
-    if (next) {
-      setTab(next.id);
-      document.getElementById(`task-tab-${next.id}`)?.focus();
-    }
-  }
+  const onKeyDownTabs = useTabArrowKeys(tabIds, tab, setTab, tabElementId);
 
   if (isError) {
     return (
@@ -101,7 +88,7 @@ export function TasksOverviewPage({ initialHorseId = null }: { initialHorseId?: 
         action={
           <ButtonLink href="/tasks/new">
             <Plus className="size-4" aria-hidden="true" />
-            Add task
+            {t.tasks.addTask}
           </ButtonLink>
         }
       />
@@ -113,12 +100,12 @@ export function TasksOverviewPage({ initialHorseId = null }: { initialHorseId?: 
 
         {totalCount === 0 && !isPending ? (
           <EmptyState
-            title="No tasks yet"
-            description="Add your first task to start tracking daily stable and farm work."
+            title={o.emptyTitle}
+            description={o.emptyDescription}
             action={
               <ButtonLink href="/tasks/new">
                 <Plus className="size-4" aria-hidden="true" />
-                Add task
+                {t.tasks.addTask}
               </ButtonLink>
             }
           />
@@ -134,7 +121,7 @@ export function TasksOverviewPage({ initialHorseId = null }: { initialHorseId?: 
 
             <div
               role="tablist"
-              aria-label="Task views"
+              aria-label={o.tabsLabel}
               onKeyDown={onKeyDownTabs}
               className="flex gap-1 overflow-x-auto border-b border-stone-200"
             >
@@ -175,17 +162,17 @@ export function TasksOverviewPage({ initialHorseId = null }: { initialHorseId?: 
               ) : (
                 <>
                   <p role="status" className="text-sm text-stone-600">
-                    {formatTaskCount(visible.length, tabTotal)}
+                    {formatTaskCount(visible.length, tabTotal, locale)}
                   </p>
 
                   {visible.length === 0 ? (
                     <EmptyState
-                      title={emptyTitleFor(tab)}
-                      description={emptyDescriptionFor(tab)}
+                      title={o.tabEmpty[tab].title}
+                      description={o.tabEmpty[tab].description}
                       action={
                         tab !== 'all' ? (
                           <Button variant="secondary" onClick={() => setTab('all')}>
-                            View all tasks
+                            {o.viewAll}
                           </Button>
                         ) : undefined
                       }
@@ -201,34 +188,4 @@ export function TasksOverviewPage({ initialHorseId = null }: { initialHorseId?: 
       </div>
     </>
   );
-}
-
-function emptyTitleFor(tab: TaskTab): string {
-  switch (tab) {
-    case 'today':
-      return 'Nothing due today';
-    case 'upcoming':
-      return 'Nothing upcoming';
-    case 'overdue':
-      return 'No overdue tasks';
-    case 'completed':
-      return 'No completed tasks yet';
-    default:
-      return 'No tasks match your search';
-  }
-}
-
-function emptyDescriptionFor(tab: TaskTab): string {
-  switch (tab) {
-    case 'today':
-      return 'No tasks are due today.';
-    case 'upcoming':
-      return 'Nothing scheduled ahead right now.';
-    case 'overdue':
-      return "You're all caught up — nothing is past its due date.";
-    case 'completed':
-      return 'Completed tasks will show up here.';
-    default:
-      return 'Try a different term, or widen the filters.';
-  }
 }

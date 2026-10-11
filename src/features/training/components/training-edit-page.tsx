@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { PageHeader } from '@/components/layout/page-header';
 import { useHorse } from '@/features/horses/use-horse';
+import { useI18n } from '@/i18n';
 import { useTrainingSession } from '../hooks/use-training-session';
 import { useTrainingPrograms } from '../hooks/use-training-programs';
 import { useTrainers } from '../hooks/use-trainers';
@@ -34,6 +35,7 @@ export function TrainingEditPage({ horseId, sessionId }: { horseId: string; sess
   const { programs, isPending: programsPending } = useTrainingPrograms();
   const { trainers, isPending: trainersPending } = useTrainers();
   const { mutateAsync } = useUpdateTrainingSession(sessionId);
+  const { t, tc } = useI18n();
 
   const horsePrograms = useMemo(
     () => programs.filter((program) => program.horseId === horseId),
@@ -46,7 +48,7 @@ export function TrainingEditPage({ horseId, sessionId }: { horseId: string; sess
   if (loading) {
     return (
       <>
-        <PageHeader title="Edit training session" />
+        <PageHeader title={t.training.edit.title} />
         <TrainingFormSkeleton />
       </>
     );
@@ -55,12 +57,14 @@ export function TrainingEditPage({ horseId, sessionId }: { horseId: string; sess
   if (missing || !session || !horseQuery.horse) {
     return (
       <>
-        <PageHeader title="Edit training session" />
+        <PageHeader title={t.training.edit.title} />
         <EmptyState
-          title="Training session not found"
-          description="This session doesn't exist, or it belongs to another horse."
+          title={t.training.edit.notFoundTitle}
+          description={t.training.edit.notFoundDescription}
           action={
-            <ButtonLink href={`/training/horses/${horseId}`}>Back to training history</ButtonLink>
+            <ButtonLink href={`/training/horses/${horseId}`}>
+              {t.training.backToTrainingHistory}
+            </ButtonLink>
           }
         />
       </>
@@ -70,13 +74,13 @@ export function TrainingEditPage({ horseId, sessionId }: { horseId: string; sess
   if (isError || horseQuery.isError) {
     return (
       <>
-        <PageHeader title="Edit training session" />
+        <PageHeader title={t.training.edit.title} />
         <ErrorState
-          title="We couldn't load this training session"
-          description="Something went wrong while loading the record. Check your connection and try again."
+          title={t.training.edit.loadErrorTitle}
+          description={t.common.recordLoadErrorDescription}
           action={
             <Button variant="secondary" onClick={() => void refetch()} loading={isRefetching}>
-              Try again
+              {t.common.tryAgain}
             </Button>
           }
         />
@@ -87,17 +91,17 @@ export function TrainingEditPage({ horseId, sessionId }: { horseId: string; sess
   return (
     <>
       <PageHeader
-        title="Edit training session"
-        description={`Update this session for ${horseQuery.horse.name}.`}
+        title={t.training.edit.title}
+        description={t.training.edit.description(tc(horseQuery.horse.name))}
       />
       <TrainingSessionForm
         session={session}
         horseId={horseId}
-        horseName={horseQuery.horse.name}
+        horseName={tc(horseQuery.horse.name)}
         programs={horsePrograms}
         trainers={trainers}
-        submitLabel="Save changes"
-        submittingLabel="Saving changes"
+        submitLabel={t.common.saveChanges}
+        submittingLabel={t.common.savingChanges}
         onCancelHref={`/training/horses/${horseId}`}
         onSubmit={async (input) => {
           await mutateAsync(input);

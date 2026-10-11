@@ -5,6 +5,7 @@ import { ListFilter, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { sortByLabel, useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { activeTrainingFilterCount, hasActiveTrainingFilters } from '../format';
 import type {
@@ -14,7 +15,7 @@ import type {
   TrainingSessionStatus,
   TrainingType,
 } from '../types';
-import { sessionStatusOptions, trainingTypeOptions } from '../vocabulary';
+import { sessionStatusValues, trainingTypeValues } from '../vocabulary';
 
 interface TrainingFilterBarProps {
   filters: TrainingSessionFilters;
@@ -50,25 +51,27 @@ export function TrainingFilterBar({
   const panelId = useId();
   const count = activeTrainingFilterCount(filters);
   const showReset = hasActiveTrainingFilters(filters);
+  const { t, tc, locale } = useI18n();
+  const f = t.training.filters;
 
   return (
     <div className="space-y-3">
       <div className="flex gap-2">
         <div className="relative min-w-0 flex-1">
           <Search
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-stone-500"
+            className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-stone-500"
             aria-hidden="true"
           />
           <label htmlFor={searchId} className="sr-only">
-            Search training sessions
+            {f.searchLabel}
           </label>
           <input
             id={searchId}
             type="search"
             value={filters.search}
-            placeholder="Search by horse, trainer, title or notes"
+            placeholder={f.searchPlaceholder}
             onChange={(event) => onChange({ ...filters, search: event.target.value })}
-            className="sh-field h-10 pl-9"
+            className="sh-field h-10 ps-9"
           />
         </div>
 
@@ -80,7 +83,7 @@ export function TrainingFilterBar({
           onClick={() => setOpen((value) => !value)}
         >
           <ListFilter className="size-4" aria-hidden="true" />
-          Filters
+          {t.common.filters}
           {count > 0 ? <span className="text-stone-600">({count})</span> : null}
         </Button>
       </div>
@@ -93,7 +96,7 @@ export function TrainingFilterBar({
         )}
       >
         <label className="sr-only" htmlFor={`${panelId}-horse`}>
-          Filter by horse
+          {t.common.filterByHorse}
         </label>
         <Select
           id={`${panelId}-horse`}
@@ -101,16 +104,16 @@ export function TrainingFilterBar({
           value={filters.horseId ?? ANY}
           onChange={(event) => onChange({ ...filters, horseId: event.target.value || null })}
         >
-          <option value={ANY}>All horses</option>
-          {horses.map((horse) => (
+          <option value={ANY}>{t.common.allHorses}</option>
+          {sortByLabel(horses, (horse) => tc(horse.name), locale).map((horse) => (
             <option key={horse.id} value={horse.id}>
-              {horse.name}
+              {tc(horse.name)}
             </option>
           ))}
         </Select>
 
         <label className="sr-only" htmlFor={`${panelId}-trainer`}>
-          Filter by trainer
+          {f.filterByTrainer}
         </label>
         <Select
           id={`${panelId}-trainer`}
@@ -118,16 +121,16 @@ export function TrainingFilterBar({
           value={filters.trainerId ?? ANY}
           onChange={(event) => onChange({ ...filters, trainerId: event.target.value || null })}
         >
-          <option value={ANY}>All trainers</option>
-          {trainers.map((trainer) => (
+          <option value={ANY}>{f.allTrainers}</option>
+          {sortByLabel(trainers, (trainer) => tc(trainer.name), locale).map((trainer) => (
             <option key={trainer.id} value={trainer.id}>
-              {trainer.name}
+              {tc(trainer.name)}
             </option>
           ))}
         </Select>
 
         <label className="sr-only" htmlFor={`${panelId}-type`}>
-          Filter by training type
+          {f.filterByType}
         </label>
         <Select
           id={`${panelId}-type`}
@@ -140,16 +143,16 @@ export function TrainingFilterBar({
             })
           }
         >
-          <option value={ANY}>All training types</option>
-          {trainingTypeOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
+          <option value={ANY}>{f.allTypes}</option>
+          {trainingTypeValues.map((value) => (
+            <option key={value} value={value}>
+              {t.training.types[value]}
             </option>
           ))}
         </Select>
 
         <label className="sr-only" htmlFor={`${panelId}-status`}>
-          Filter by status
+          {t.common.filterByStatus}
         </label>
         <Select
           id={`${panelId}-status`}
@@ -162,19 +165,19 @@ export function TrainingFilterBar({
             })
           }
         >
-          <option value={ANY}>All statuses</option>
-          {sessionStatusOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
+          <option value={ANY}>{t.common.allStatuses}</option>
+          {sessionStatusValues.map((value) => (
+            <option key={value} value={value}>
+              {t.training.sessionStatuses[value]}
             </option>
           ))}
         </Select>
 
         {/* The two date inputs are one control, so they carry one visible label. */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-stone-600">Dated</span>
+          <span className="text-sm text-stone-600">{t.common.dated}</span>
           <label className="sr-only" htmlFor={`${panelId}-from`}>
-            From date
+            {t.common.fromDate}
           </label>
           <Input
             id={`${panelId}-from`}
@@ -184,9 +187,9 @@ export function TrainingFilterBar({
             max={filters.dateTo || undefined}
             onChange={(event) => onChange({ ...filters, dateFrom: event.target.value })}
           />
-          <span className="text-sm text-stone-600">to</span>
+          <span className="text-sm text-stone-600">{t.common.dateRangeTo}</span>
           <label className="sr-only" htmlFor={`${panelId}-to`}>
-            To date
+            {t.common.toDate}
           </label>
           <Input
             id={`${panelId}-to`}
@@ -201,7 +204,7 @@ export function TrainingFilterBar({
         {showReset ? (
           <Button variant="ghost" size="sm" onClick={onReset} className="justify-self-start">
             <X className="size-4" aria-hidden="true" />
-            Clear filters
+            {t.common.clearFilters}
           </Button>
         ) : null}
       </div>
